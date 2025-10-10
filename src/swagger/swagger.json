@@ -1,0 +1,574 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Groov API",
+    "version": "1.0.0",
+    "description": "OpenAPI specification for the Groov application."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3003"
+    }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Register new user",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "user123"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signup successful"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login existing user",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "user123"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout user",
+        "description": "Clears authentication cookies and invalidates the refresh token",
+        "tags": ["Auth"],
+        "responses": {
+          "200": {
+            "description": "Logout successful - authentication cookies cleared"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ]
+      }
+    },
+
+    "/dance-moves": {
+      "get": {
+        "summary": "Get all dance moves",
+        "tags": ["Dance Moves"],
+        "responses": {
+          "200": { "description": "List of dance moves" }
+        }
+      },
+      "post": {
+        "summary": "Create a new dance move",
+        "tags": ["Dance Moves"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "difficulty": { "type": "string", "enum": ["easy", "medium", "hard", "very_hard"] },
+                  "start_position": {
+                    "type": "string",
+                    "enum": [
+                      "closed",
+                      "openLeftToRight",
+                      "openRightToRight",
+                      "openLeftToLeft",
+                      "openRightToLeft",
+                      "sweethearts"
+                    ]
+                  },
+                  "end_position": {
+                    "type": "string",
+                    "enum": [
+                      "closed",
+                      "openLeftToRight",
+                      "openRightToRight",
+                      "openLeftToLeft",
+                      "openRightToLeft",
+                      "sweethearts"
+                    ]
+                  },
+                  "parent_move_id": { "type": "integer", "example": null, "nullable": true }
+                },
+                "required": ["name", "difficulty", "start_position", "end_position"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Dance move created successfully" },
+          "400": { "description": "Validation error or bad request" }
+        }
+      }
+    },
+    "/dance-moves/{id}": {
+      "get": {
+        "summary": "Get a dance move by ID",
+        "tags": ["Dance Moves"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Dance move found" },
+          "404": { "description": "Dance move not found" }
+        }
+      },
+      "put": {
+        "summary": "Update a dance move",
+        "tags": ["Dance Moves"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/DanceMove" } }
+          }
+        },
+        "responses": {
+          "200": { "description": "Dance move updated" },
+          "404": { "description": "Dance move not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a dance move",
+        "tags": ["Dance Moves"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Dance move deleted" },
+          "404": { "description": "Dance move not found" }
+        }
+      }
+    },
+    "/dance-moves/difficulty/{difficulty}": {
+      "get": {
+        "summary": "Get dance moves by difficulty",
+        "tags": ["Dance Moves"],
+        "parameters": [
+          {
+            "name": "difficulty",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["easy", "medium", "hard", "very_hard"]
+            }
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of dance moves filtered by difficulty" }
+        }
+      }
+    },
+    "/dance-moves/{id}/children": {
+      "get": {
+        "summary": "Get child moves of a given dance move",
+        "tags": ["Dance Moves"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "List of child dance moves" }
+        }
+      }
+    },
+    "/dance-moves/{id}/parent": {
+      "get": {
+        "summary": "Get the parent move of a given dance move",
+        "tags": ["Dance Moves"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Parent dance move" },
+          "404": { "description": "Parent not found" }
+        }
+      }
+    },
+
+    "/dance-sequences": {
+      "get": {
+        "summary": "Get all dance sequences",
+        "tags": ["Dance Sequences"],
+        "responses": {
+          "200": { "description": "List of dance sequences" }
+        }
+      },
+      "post": {
+        "summary": "Create a new dance sequence",
+        "tags": ["Dance Sequences"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "event_id": { "type": "integer", "example": null, "nullable": true },
+                  "description": { "type": "string" }
+                },
+                "required": ["name", "event_id", "description"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Dance sequence created successfully" },
+          "400": { "description": "Validation error or bad request" }
+        }
+      }
+    },
+    "/dance-sequences/{id}": {
+      "get": {
+        "summary": "Get a dance sequence by ID",
+        "tags": ["Dance Sequences"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Dance sequence found" },
+          "404": { "description": "Dance sequence not found" }
+        }
+      },
+      "put": {
+        "summary": "Update a dance sequence",
+        "tags": ["Dance Sequences"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "event_id": { "type": "integer", "example": null, "nullable": true },
+                  "description": { "type": "string" }
+                },
+                "required": ["name", "event_id", "description"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Dance sequence updated" },
+          "404": { "description": "Dance sequence not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a dance sequence",
+        "tags": ["Dance Sequences"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Dance sequence deleted" },
+          "404": { "description": "Dance sequence not found" }
+        }
+      }
+    },
+
+    "/sequence-moves/{id}": {
+      "get": {
+        "summary": "Get all moves for a sequence",
+        "tags": ["Sequence Moves"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Sequence ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sequence moves",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MoveOfSequence"
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Sequence not found" }
+        }
+      },
+      "put": {
+        "summary": "Replace all moves in a sequence",
+        "tags": ["Sequence Moves"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Sequence ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "moveIds": {
+                    "type": "array",
+                    "items": { "type": "integer" },
+                    "description": "Array of move IDs in the desired order"
+                  }
+                },
+                "required": ["moveIds"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sequence moves updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MoveOfSequence"
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" }
+        }
+      },
+      "delete": {
+        "summary": "Delete all moves from a sequence",
+        "tags": ["Sequence Moves"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Sequence ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All moves deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/events": {
+      "get": {
+        "summary": "Get all events",
+        "tags": ["Events"],
+        "responses": {
+          "200": {
+            "description": "List of events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new event",
+        "tags": ["Events"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Event"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{id}": {
+      "get": {
+        "summary": "Get event by ID",
+        "tags": ["Events"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "404": { "description": "Event not found" }
+        }
+      },
+      "put": {
+        "summary": "Update event",
+        "tags": ["Events"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Event"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Event updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete event",
+        "tags": ["Events"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
