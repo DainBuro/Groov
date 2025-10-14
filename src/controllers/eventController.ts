@@ -14,6 +14,7 @@ import { EventService } from '../services/eventService';
 import { iocContainer } from '../ioc/inversify.config';
 import { AuthService } from '../services/authService';
 import { Event, RoleType } from '../schema';
+import _ from 'lodash';
 
 const authService = iocContainer.get<AuthService>(TYPES.authService);
 
@@ -34,28 +35,83 @@ export class EventController extends BaseHttpController {
 
   @httpGet('/:id')
   private async getById(@requestParam('id') id: number) {
-    const event = await this.eventService.getEventById(id);
-    if (!event) {
-      return this.notFound();
+    try {
+      if (id <= 0) {
+        return this.badRequest('Event id has to be a positive integer');
+      }
+      const event = await this.eventService.getEventById(id);
+      if (!event) {
+        return this.notFound();
+      }
+      return this.ok(event);
+    } catch {
+      return this.badRequest('Event id has to be a positive integer');
     }
-    return this.ok(event);
   }
 
   @httpPost('/', authService.authenticate([RoleType.Admin]))
   private async create(@requestBody() body: Partial<Event>) {
-    const result = await this.eventService.createEvent(body);
-    return this.ok(result);
+    if (_.isEmpty(body)) {
+      return this.badRequest('Request body cannot be empty.');
+    }
+    if (body.id) {
+      return this.badRequest('ID field is not allowed when creating a new Event.');
+    }
+
+    try {
+      const result = await this.eventService.createEvent(body);
+      return this.created('/events', result);
+    } catch {
+      return this.badRequest('Could not post event object');
+    }
   }
 
   @httpPut('/:id', authService.authenticate([RoleType.Admin]))
   private async update(@requestParam('id') id: number, @requestBody() body: Partial<Event>) {
-    const result = await this.eventService.updateEvent(id, body);
-    return this.ok(result);
+    try {
+      if (id <= 0) {
+        return this.badRequest('Event id has to be a positive integer');
+      }
+      if (body.id) {
+        return this.badRequest('ID field is not allowed when updating an Event.');
+      }
+      if (_.isEmpty(body)) {
+        return this.badRequest('Request body cannot be empty.');
+      }
+
+      const event = await this.eventService.getEventById(id);
+      if (!event) {
+        return this.notFound();
+      }
+
+      const result = await this.eventService.updateEvent(id, body);
+      if (!result) {
+        return this.notFound();
+      }
+      return this.ok(result);
+    } catch (err: any) {
+      if (err.message.includes('not found')) {
+        return this.notFound();
+      }
+      return this.badRequest(`Could not update event with id: ${id}`);
+    }
   }
 
   @httpDelete('/:id', authService.authenticate([RoleType.Admin]))
   private async delete(@requestParam('id') id: number) {
-    const result = await this.eventService.deleteEvent(id);
-    return this.ok(result);
+    try {
+      if (id <= 0) {
+        return this.badRequest('Event id has to be a positive integer');
+      }
+      const event = await this.eventService.getEventById(id);
+      if (!event) {
+        return this.notFound();
+      }
+
+      const result = await this.eventService.deleteEvent(id);
+      return this.ok(result);
+    } catch {
+      return this.badRequest('Event id has to be a positive integer');
+    }
   }
 }

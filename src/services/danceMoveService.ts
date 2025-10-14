@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { inject, injectable } from 'inversify';
-import { DanceMove } from '../schema';
+import { DanceMove, DifficultyEnum } from '../schema';
 import { DanceMoveRepository } from '../repositories/danceMoveRepository';
 import { TYPES } from '../ioc/types';
 
@@ -15,7 +15,7 @@ export class DanceMoveService {
     return this.danceMoveRepository.getAllDanceMoves();
   }
 
-  async getDanceMovesByDifficulty(difficulty: string): Promise<DanceMove[]> {
+  async getDanceMovesByDifficulty(difficulty: DifficultyEnum): Promise<DanceMove[]> {
     return this.danceMoveRepository.getDanceMovesByDifficulty(difficulty);
   }
 
@@ -23,7 +23,9 @@ export class DanceMoveService {
     if (!data.name || !data.difficulty || !data.start_position || !data.end_position) {
       throw new Error('Missing required fields to create a dance move.');
     }
-    return this.danceMoveRepository.createDanceMove(data);
+    const { id, ...safeData } = data;
+
+    return this.danceMoveRepository.createDanceMove(safeData);
   }
 
   async updateDanceMove(id: number, data: Partial<DanceMove>): Promise<DanceMove | null> {

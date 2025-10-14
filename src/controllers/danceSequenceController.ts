@@ -11,9 +11,8 @@ import {
 import { inject } from 'inversify';
 import { TYPES } from '../ioc/types';
 import { AuthService } from '../services/authService';
-import { DanceSequence, RoleType } from '../schema';
+import { DanceSequence } from '../schema';
 import _ from 'lodash';
-import { DanceMoveService } from '../services/danceMoveService';
 import { iocContainer } from '../ioc/inversify.config';
 import { DanceSequenceService } from '../services/danceSequenceService';
 
@@ -33,17 +32,27 @@ export class DanceSequenceController extends BaseHttpController {
 
   @httpGet('/:id')
   private async getById(@requestParam('id') id: number) {
-    const move = await this.danceSequenceService.getDanceSequence(id);
-    if (!move) {
-      return this.notFound();
+    try {
+      if (id <= 0) {
+        return this.badRequest('DanceSequence id has to be a positive integer');
+      }
+      const sequence = await this.danceSequenceService.getDanceSequence(id);
+      if (!sequence) {
+        return this.notFound();
+      }
+      return this.ok(sequence);
+    } catch {
+      return this.badRequest('DanceSequence id has to be a positive integer');
     }
-    return this.ok(move);
   }
 
   @httpPost('/', authService.authenticate([]))
-  private async create(@requestBody() body: Omit<DanceSequence, 'id' | 'user_id'>) {
+  private async create(@requestBody() body: Partial<DanceSequence>) {
     if (_.isEmpty(body)) {
       return this.badRequest('Request body cannot be empty.');
+    }
+    if (body.id) {
+      return this.badRequest('ID field is not allowed when creating a new Dance sequence.');
     }
 
     try {
@@ -51,38 +60,51 @@ export class DanceSequenceController extends BaseHttpController {
         ...body,
         user_id: this.httpContext.user.details.id
       });
-      return this.created('/dance-moves', move);
-    } catch (error: any) {
-      return this.badRequest(error.message);
+      return this.created('/dance-sequences', move);
+    } catch {
+      return this.badRequest('Could not post dance sequence object');
     }
   }
 
   @httpPut('/:id', authService.authenticate([]))
-  private async update(@requestParam('id') id: number, @requestBody() body: Omit<DanceSequence, 'id' | 'user_id'>) {
+  private async update(@requestParam('id') id: number, @requestBody() body: Partial<DanceSequence>) {
     try {
+      if (id <= 0) {
+        return this.badRequest('DanceSequence id has to be a positive integer');
+      }
+      if (_.isEmpty(body)) {
+        return this.badRequest('Request body cannot be empty.');
+      }
+
+      const sequence = await this.danceSequenceService.getDanceSequence(id);
+      if (!sequence) {
+        return this.notFound();
+      }
       const updated = await this.danceSequenceService.updateDanceSequence(id, {
         ...body,
         user_id: this.httpContext.user.details.id
       });
-      if (!updated) {
-        return this.notFound();
-      }
       return this.ok(updated);
-    } catch (error: any) {
-      return this.badRequest(error.message);
+    } catch {
+      return this.badRequest(`Could not update dance sequence with id: ${id}`);
     }
   }
 
   @httpDelete('/:id', authService.authenticate([]))
   private async delete(@requestParam('id') id: number) {
     try {
-      const deleted = await this.danceSequenceService.deleteDanceSequence(id, this.httpContext.user.details.id);
-      if (!deleted) {
+      if (id <= 0) {
+        return this.badRequest('DanceSequence id has to be a positive integer');
+      }
+      const sequence = await this.danceSequenceService.getDanceSequence(id);
+      if (!sequence) {
         return this.notFound();
       }
+      const deleted = await this.danceSequenceService.deleteDanceSequence(id, this.httpContext.user.details.id);
+
       return this.ok(deleted);
-    } catch (error: any) {
-      return this.badRequest(error.message);
+    } catch {
+      return this.badRequest(`Could not delete dance sequence with id: ${id}`);
     }
   }
 }

@@ -19,7 +19,9 @@ export class DanceSequenceService {
     if (!data.name || !data.user_id || !data.description) {
       throw new Error('Missing required fields to create a dance sequence.');
     }
-    return this.danceSequenceRepository.createDanceSequence(data);
+    const { id, ...safeData } = data;
+
+    return this.danceSequenceRepository.createDanceSequence(safeData);
   }
 
   async updateDanceSequence(id: number, data: Partial<DanceSequence>): Promise<DanceSequence | null> {

@@ -26,7 +26,9 @@ export class EventService {
     if (_.isEmpty(event.name)) {
       throw new Error('Event name is required');
     }
-    return this.eventRepository.createEvent(event);
+    const { id, ...safeData } = event;
+
+    return this.eventRepository.createEvent(safeData);
   }
 
   async updateEvent(id: number, event: Partial<Event>): Promise<Event[]> {
