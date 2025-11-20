@@ -9,10 +9,12 @@
     "dev": "nodemon src/index.ts",
     "migration:add": "knex migrate:make",
     "migrate": "knex migrate:latest && npx ts-node ./update-types",
+    "migrate:prod": "knex migrate:latest",
     "rollback": "knex migrate:rollback",
     "migration:run": "knex migrate:up",
     "migration:rollback": "knex migrate:down",
-    "seed": "npx ts-node src/jobs/seed.ts"
+    "seed": "npx ts-node src/jobs/seed.ts",
+    "seed:prod": "node dist/src/jobs/seed.js"
   },
   "author": "",
   "license": "ISC",
@@ -40,7 +42,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
@@ -51,7 +54,6 @@
     "knex-types": "^0.5.0",
     "nodemon": "^3.1.4",
     "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
     "typescript": "^5.5.4",
     "typescript-eslint": "^8.2.0"
   }

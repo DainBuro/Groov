@@ -1,7 +1,7 @@
-version: "3"
+version: "3.9"
 services:
   db:
-    image: postgres
+    image: postgres:17
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -10,6 +10,31 @@ services:
       - "5435:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d groov_db"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  backend:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DB_HOST: db
+      DB_USER: admin
+      DB_PASSWORD: admin
+      DB_PORT: 5432
+      DB_NAME: groov_db
+      DB_SSL: false
+      ACCESS_TOKEN_SECRET: TBbaJd9Yce7+2rLBGswhWxcwpLxX8b5CRDRYDgU3aS0=
+      REFRESH_TOKEN_SECRET: 97eHWGnSYDp55KMJPGrW9mrdRoVOkg3Ip4QxnrTzjbA=
+    ports:
+      - "3003:3003"
+    command: ["node", "dist/src/index.js"]
 
 volumes:
   db-data:

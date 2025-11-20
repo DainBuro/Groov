@@ -43,7 +43,7 @@ export class AuthController extends BaseHttpController {
     this.httpContext.response.cookie(Cookie.ACCESS_TOKEN, accessToken, {
       maxAge: REFRESH_TOKEN_EXPIRATION,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'development',
       sameSite: 'strict'
     });
 

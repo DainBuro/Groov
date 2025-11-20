@@ -1,0 +1,82 @@
+[
+  {
+    "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+    "slotSetting": false,
+    "value": "false"
+  },
+  {
+    "name": "DOCKER_REGISTRY_SERVER_URL",
+    "slotSetting": false,
+    "value": "https://groovcontainerreg.azurecr.io"
+  },
+  {
+    "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+    "slotSetting": false,
+    "value": "groovcontainerreg"
+  },
+  {
+    "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+    "slotSetting": false,
+    "value": null
+  },
+  {
+    "name": "NODE_ENV",
+    "slotSetting": false,
+    "value": "production"
+  },
+  {
+    "name": "PORT",
+    "slotSetting": false,
+    "value": "3003"
+  },
+  {
+    "name": "DB_HOST",
+    "slotSetting": false,
+    "value": "groov-database-server.postgres.database.azure.com"
+  },
+  {
+    "name": "DB_USER",
+    "slotSetting": false,
+    "value": "groovdbadmin"
+  },
+  {
+    "name": "DB_PASSWORD",
+    "slotSetting": false,
+    "value": "groovdbadmin"
+  },
+  {
+    "name": "DB_PORT",
+    "slotSetting": false,
+    "value": "5432"
+  },
+  {
+    "name": "DB_NAME",
+    "slotSetting": false,
+    "value": "groov_db"
+  },
+  {
+    "name": "DB_SSL",
+    "slotSetting": false,
+    "value": "true"
+  },
+  {
+    "name": "ACCESS_TOKEN_SECRET",
+    "slotSetting": false,
+    "value": "kDmBopRj6cLZrZk8487L6mTuwynCd8X+NdSW7ZcqY2Q="
+  },
+  {
+    "name": "REFRESH_TOKEN_SECRET",
+    "slotSetting": false,
+    "value": "LJCv4pZyerGlvh0sMkZiVQCPyEIpjUPoGScFGsI2dS4="
+  },
+  {
+    "name": "WEBSITES_PORT",
+    "slotSetting": false,
+    "value": "3003"
+  },
+  {
+    "name": "WEBSITE_HTTPLOGGING_RETENTION_DAYS",
+    "slotSetting": false,
+    "value": "3"
+  }
+]
