@@ -1,0 +1,65 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+
+  &.fullWidth {
+    width: 100%;
+  }
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $gray-700;
+}
+
+.input {
+  @include input-reset;
+  padding: $spacing-3;
+  border: 2px solid $gray-300;
+  border-radius: $radius-md;
+  font-size: $font-size-base;
+  color: $gray-900;
+  background-color: $white;
+  @include transition(border-color);
+
+  &::placeholder {
+    color: $gray-400;
+  }
+
+  &:hover {
+    border-color: $gray-400;
+  }
+
+  &:focus {
+    border-color: $primary;
+    @include focus-ring;
+  }
+
+  &.error {
+    border-color: $error;
+
+    &:focus {
+      @include focus-ring($error);
+    }
+  }
+
+  &:disabled {
+    background-color: $gray-100;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  &.fullWidth {
+    width: 100%;
+  }
+}
+
+.errorMessage {
+  font-size: $font-size-sm;
+  color: $error;
+}

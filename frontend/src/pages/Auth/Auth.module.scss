@@ -1,0 +1,58 @@
+@import "../../styles/variables";
+@import "../../styles/mixins";
+
+.authContainer {
+  @include flex-center;
+  min-height: calc(100vh - $header-height - 120px);
+  padding: $spacing-6;
+}
+
+.authCard {
+  @include card;
+  width: 100%;
+  max-width: 450px;
+
+  h2 {
+    text-align: center;
+    margin-bottom: $spacing-2;
+    color: $gray-900;
+  }
+}
+
+.subtitle {
+  text-align: center;
+  color: $gray-600;
+  margin-bottom: $spacing-6;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-5;
+  margin-bottom: $spacing-4;
+}
+
+.error {
+  background-color: rgba($error, 0.1);
+  border: 1px solid $error;
+  border-radius: $radius-md;
+  padding: $spacing-3;
+  color: darken($error, 10%);
+  font-size: $font-size-sm;
+  margin-bottom: $spacing-4;
+}
+
+.switchAuth {
+  text-align: center;
+  color: $gray-600;
+  font-size: $font-size-sm;
+
+  a {
+    color: $primary;
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

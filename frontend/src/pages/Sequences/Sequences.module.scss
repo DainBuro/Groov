@@ -1,0 +1,453 @@
+@import "../../styles/variables";
+@import "../../styles/mixins";
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-6;
+  gap: $spacing-4;
+
+  @include respond-to("md", "max") {
+    flex-direction: column;
+  }
+
+  h1 {
+    margin: 0 0 $spacing-2 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.createForm {
+  @include card;
+  margin-bottom: $spacing-6;
+  padding: $spacing-6;
+
+  h3 {
+    margin: 0 0 $spacing-4 0;
+  }
+}
+
+.formGroup {
+  margin-bottom: $spacing-4;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-2;
+    font-weight: $font-weight-medium;
+    color: $gray-700;
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: $spacing-3;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    font-family: inherit;
+    font-size: $font-size-base;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.filters {
+  margin-bottom: $spacing-6;
+  display: flex;
+  gap: $spacing-4;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 250px;
+  padding: $spacing-3;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  font-family: inherit;
+  font-size: $font-size-base;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+}
+
+.toggleContainer {
+  display: flex;
+  gap: 0;
+  border-radius: $radius-md;
+  overflow: hidden;
+  border: 1px solid $gray-300;
+}
+
+.toggleButton {
+  padding: $spacing-3 $spacing-4;
+  background: $white;
+  border: none;
+  font-family: inherit;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: all $transition-base;
+  color: $gray-700;
+
+  &:not(:last-child) {
+    border-right: 1px solid $gray-300;
+  }
+
+  &:hover {
+    background: $gray-50;
+  }
+
+  &.active {
+    background: $primary;
+    color: $white;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-6;
+
+  @include respond-to("sm") {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to("lg") {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  @include card;
+  @include hover-lift;
+  text-decoration: none;
+  color: inherit;
+
+  h3 {
+    color: $primary;
+    margin-bottom: $spacing-3;
+  }
+
+  p {
+    margin-bottom: $spacing-3;
+  }
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $gray-600;
+}
+
+.icon {
+  font-size: $font-size-base;
+}
+
+.detailContainer {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-4;
+
+  h1 {
+    margin-bottom: 0;
+  }
+}
+
+.detailInfo {
+  @include card;
+  margin-bottom: $spacing-6;
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    margin-bottom: $spacing-3;
+    font-size: $font-size-base;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-3;
+}
+
+.movesSection {
+  margin-top: $spacing-6;
+
+  h2 {
+    margin-bottom: $spacing-4;
+  }
+}
+
+.movesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.moveItem {
+  @include card;
+  margin-bottom: $spacing-3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-4;
+
+  .moveNumber {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: $primary;
+    color: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: $font-weight-bold;
+    font-size: $font-size-sm;
+  }
+
+  .moveInfo {
+    flex: 1;
+
+    h4 {
+      margin: 0 0 $spacing-1 0;
+      color: $primary;
+    }
+
+    p {
+      margin: 0;
+      font-size: $font-size-sm;
+      color: $gray-600;
+    }
+  }
+
+  .moveActions {
+    display: flex;
+    gap: $spacing-2;
+  }
+}
+
+.moveLink {
+  text-decoration: none;
+  color: inherit;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+
+  &:hover {
+    .moveInfo h4 {
+      text-decoration: underline;
+    }
+  }
+}
+
+.editMode {
+  @include card;
+  padding: $spacing-6;
+  margin-bottom: $spacing-6;
+  background-color: $primary-lightest;
+  border: 2px solid $primary;
+
+  h3 {
+    margin-bottom: $spacing-4;
+  }
+}
+
+.editActions {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.selectedMoves {
+  margin-bottom: $spacing-6;
+
+  h4 {
+    margin-bottom: $spacing-3;
+    color: $gray-800;
+  }
+}
+
+.selectedMovesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.selectedMoveItem {
+  @include card;
+  margin-bottom: $spacing-3;
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  background-color: $white;
+
+  .moveNumber {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: $primary;
+    color: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: $font-weight-bold;
+    font-size: $font-size-sm;
+  }
+
+  .moveInfo {
+    flex: 1;
+
+    h5 {
+      margin: 0 0 $spacing-1 0;
+      color: $gray-800;
+      font-size: $font-size-base;
+    }
+
+    p {
+      margin: 0;
+      font-size: $font-size-sm;
+    }
+  }
+}
+
+.moveControls {
+  display: flex;
+  gap: $spacing-2;
+  flex-shrink: 0;
+}
+
+.controlButton {
+  width: 32px;
+  height: 32px;
+  border: 1px solid $gray-300;
+  background-color: $white;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  transition: all $transition-base;
+  color: $gray-700;
+
+  &:hover:not(:disabled) {
+    background-color: $gray-100;
+    border-color: $primary;
+    color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  &.removeButton {
+    color: $error;
+
+    &:hover:not(:disabled) {
+      background-color: $error;
+      border-color: $error;
+      color: $white;
+    }
+  }
+}
+
+.availableMoves {
+  margin-top: $spacing-6;
+
+  h3 {
+    margin-bottom: $spacing-4;
+  }
+}
+
+.movesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-3;
+
+  @include respond-to("md") {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.availableMoveCard {
+  @include card;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: $primary;
+  }
+
+  h4 {
+    margin: 0 0 $spacing-2 0;
+    color: $primary;
+  }
+
+  p {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $gray-600;
+  }
+}
+
+.moveCount {
+  margin-top: $spacing-2;
+  padding: $spacing-1 $spacing-2;
+  background-color: $primary;
+  color: $white;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  display: inline-block;
+}
+
+.emptyState {
+  @include card;
+  text-align: center;
+  padding: $spacing-8;
+  color: $gray-600;
+}

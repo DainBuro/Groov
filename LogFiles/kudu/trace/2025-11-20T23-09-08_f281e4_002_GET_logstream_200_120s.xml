@@ -1,6 +1,0 @@
-<step title="Incoming Request" date="2025-11-20T23:09:08.528" instance="f281e4" url="/logstream" method="GET" type="request" pid="768,1,7" Host="groov-dance-app.scm.azurewebsites.net" User-Agent="AZURECLI/2.79.0 (MSI)" Accept-Encoding="identity" Authorization="Bea..." x-ms-client-request-id="e44c2e82-c665-11f0-ba2d-8cc68199f13c" X-ARR-LOG-ID="e44c2e82-c665-11f0-ba2d-8cc68199f13c" CLIENT-IP="84.15.184.222:59795" X-SITE-DEPLOYMENT-ID="groov-dance-app" WAS-DEFAULT-HOSTNAME="groov-dance-app.scm.azurewebsites.net" X-Forwarded-Proto="https" X-AppService-Proto="https" X-Forwarded-TlsVersion="1.3" X-WAWS-Unencoded-URL="/logstream" X-Client-IP="84.15.184.222" X-Client-Port="59795" >
-  <step title="Cleanup Xml Logs" date="2025-11-20T23:09:08.536" /><!-- duration: 5ms -->
-  <step title="LogStreamHandlerMiddleware.Invoke" date="2025-11-20T23:09:08.553" /><!-- duration: 268ms -->
-  <step title="Error occurred" date="2025-11-20T23:11:08.824" type="error" text="LogStreamManager: ProcessRequest end" /><!-- duration: 4ms -->
-  <step title="Outgoing response" date="2025-11-20T23:11:08.838" type="response" statusCode="200" statusText="OK" /><!-- duration: 4ms -->
-</step><!-- duration: 120315ms -->

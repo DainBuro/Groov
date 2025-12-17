@@ -1,0 +1,222 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-6;
+  gap: $spacing-4;
+
+  @include respond-to('md', 'max') {
+    flex-direction: column;
+  }
+
+  h1 {
+    margin: 0 0 $spacing-2 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.filters {
+  margin-bottom: $spacing-6;
+}
+
+.searchInput {
+  width: 100%;
+  padding: $spacing-3;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  font-family: inherit;
+  font-size: $font-size-base;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+}
+
+.createForm {
+  @include card;
+  margin-bottom: $spacing-6;
+  padding: $spacing-6;
+
+  h3 {
+    margin: 0 0 $spacing-4 0;
+  }
+}
+
+.formGroup {
+  margin-bottom: $spacing-4;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-2;
+    font-weight: $font-weight-medium;
+    color: $gray-700;
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: $spacing-3;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    font-family: inherit;
+    font-size: $font-size-base;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-6;
+
+  @include respond-to('sm') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to('lg') {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  @include card;
+  @include hover-lift;
+  text-decoration: none;
+  color: inherit;
+
+  h3 {
+    color: $primary;
+    margin-bottom: $spacing-4;
+  }
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $gray-600;
+  margin-bottom: $spacing-2;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.icon {
+  font-size: $font-size-base;
+}
+
+.detailContainer {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-6;
+  gap: $spacing-4;
+
+  @include respond-to('md', 'max') {
+    flex-direction: column;
+  }
+
+  h1 {
+    margin: 0 0 $spacing-3 0;
+  }
+}
+
+.editMode {
+  @include card;
+  margin-bottom: $spacing-6;
+  padding: $spacing-6;
+
+  h3 {
+    margin: 0 0 $spacing-4 0;
+  }
+}
+
+.detailInfo {
+  @include card;
+  margin-bottom: $spacing-6;
+
+  .infoRow {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    margin-bottom: $spacing-3;
+    font-size: $font-size-base;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .icon {
+      font-size: $font-size-lg;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.sequenceSection {
+  margin-top: $spacing-6;
+
+  h2 {
+    margin-bottom: $spacing-4;
+  }
+}
+
+.sequenceGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-4;
+
+  @include respond-to('md') {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sequenceCard {
+  @include card;
+  @include hover-lift;
+  text-decoration: none;
+  color: inherit;
+
+  h3 {
+    color: $primary;
+    margin-bottom: $spacing-2;
+    font-size: $font-size-lg;
+  }
+
+  p {
+    color: $gray-600;
+    font-size: $font-size-sm;
+  }
+}

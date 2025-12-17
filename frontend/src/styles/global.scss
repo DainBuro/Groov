@@ -1,0 +1,195 @@
+@import "./reset";
+@import "./variables";
+@import "./mixins";
+
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  color: $gray-900;
+  background-color: $gray-50;
+}
+
+code {
+  font-family: $font-family-mono;
+}
+
+// Typography
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $gray-900;
+}
+
+h1 {
+  font-size: $font-size-4xl;
+  margin-bottom: $spacing-6;
+}
+
+h2 {
+  font-size: $font-size-3xl;
+  margin-bottom: $spacing-5;
+}
+
+h3 {
+  font-size: $font-size-2xl;
+  margin-bottom: $spacing-4;
+}
+
+h4 {
+  font-size: $font-size-xl;
+  margin-bottom: $spacing-3;
+}
+
+h5 {
+  font-size: $font-size-lg;
+  margin-bottom: $spacing-2;
+}
+
+h6 {
+  font-size: $font-size-base;
+  margin-bottom: $spacing-2;
+}
+
+p {
+  margin-bottom: $spacing-4;
+  line-height: $line-height-relaxed;
+}
+
+// Links
+a {
+  color: $primary;
+  text-decoration: none;
+  @include transition(color);
+
+  &:hover {
+    h3 {
+      color: $primary-dark;
+      text-decoration: underline;
+    }
+  }
+}
+
+// Utility classes
+.container {
+  @include container;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-primary {
+  color: $primary;
+}
+
+.text-secondary {
+  color: $secondary;
+}
+
+.text-success {
+  color: $success;
+}
+
+.text-error {
+  color: $error;
+}
+
+.text-muted {
+  color: $gray-500;
+}
+
+.mt-0 {
+  margin-top: $spacing-0;
+}
+.mt-1 {
+  margin-top: $spacing-1;
+}
+.mt-2 {
+  margin-top: $spacing-2;
+}
+.mt-3 {
+  margin-top: $spacing-3;
+}
+.mt-4 {
+  margin-top: $spacing-4;
+}
+.mt-5 {
+  margin-top: $spacing-5;
+}
+.mt-6 {
+  margin-top: $spacing-6;
+}
+.mt-8 {
+  margin-top: $spacing-8;
+}
+
+.mb-0 {
+  margin-bottom: $spacing-0;
+}
+.mb-1 {
+  margin-bottom: $spacing-1;
+}
+.mb-2 {
+  margin-bottom: $spacing-2;
+}
+.mb-3 {
+  margin-bottom: $spacing-3;
+}
+.mb-4 {
+  margin-bottom: $spacing-4;
+}
+.mb-5 {
+  margin-bottom: $spacing-5;
+}
+.mb-6 {
+  margin-bottom: $spacing-6;
+}
+.mb-8 {
+  margin-bottom: $spacing-8;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  @include flex-column;
+}
+
+.flex-center {
+  @include flex-center;
+}
+
+.flex-between {
+  @include flex-between;
+}
+
+.gap-2 {
+  gap: $spacing-2;
+}
+.gap-3 {
+  gap: $spacing-3;
+}
+.gap-4 {
+  gap: $spacing-4;
+}
+.gap-6 {
+  gap: $spacing-6;
+}
+
+.card {
+  @include card;
+}

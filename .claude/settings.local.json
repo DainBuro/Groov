@@ -16,7 +16,19 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(timeout 10 docker-compose logs:*)",
-      "Bash(exit 0)"
+      "Bash(exit 0)",
+      "Bash(dir:*)",
+      "Bash(git mv:*)",
+      "Bash(npx create-react-app frontend --template typescript)",
+      "Bash(npm install:*)",
+      "Bash(test:*)",
+      "Bash(npm run dev:*)",
+      "Bash(cat:*)",
+      "Bash(npm run migration:add:*)",
+      "Bash(npm run migrate:*)",
+      "Bash(npx knex:*)",
+      "Bash(docker exec:*)",
+      "Bash(npx ts-node:*)"
     ],
     "deny": [],
     "ask": []

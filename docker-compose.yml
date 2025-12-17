@@ -17,7 +17,7 @@ services:
       timeout: 5s
 
   backend:
-    build: .
+    build: ./backend
     depends_on:
       db:
         condition: service_healthy
@@ -35,6 +35,15 @@ services:
     ports:
       - "3003:3003"
     command: ["node", "dist/src/index.js"]
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3003
 
 volumes:
   db-data:

@@ -14,46 +14,28 @@ This guide will help you deploy the Groov application to Azure using Docker cont
 
 ```bash
 # Set variables
-RESOURCE_GROUP="groov-rg"
-LOCATION="eastus"
-ACR_NAME="groovacr"
-POSTGRES_SERVER="groov-postgres"
-POSTGRES_ADMIN="groovadmin"
-POSTGRES_PASSWORD="groovadmin"
-DB_NAME="groov_db"
+$RESOURCE_GROUP="saitynaiavrg"
+$LOCATION="germanywestcentral"
+$ACR_NAME="saitynaiavacr"
+$POSTGRES_SERVER="saitynaiav-postgres"
+$POSTGRES_ADMIN="avadmin"
+$POSTGRES_PASSWORD="avadmin"
+$DB_NAME="saitynaiav_db"
 
 # Create resource group
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
 # Create Azure Container Registry
-az acr create --resource-group $RESOURCE_GROUP \
-  --name $ACR_NAME --sku Basic
+az acr create --resource-group $RESOURCE_GROUP --name $ACR_NAME --sku Basic --location $LOCATION
 
 # Create PostgreSQL server
-az postgres flexible-server create \
-  --resource-group $RESOURCE_GROUP \
-  --name $POSTGRES_SERVER \
-  --location $LOCATION \
-  --admin-user $POSTGRES_ADMIN \
-  --admin-password $POSTGRES_PASSWORD \
-  --sku-name Standard_B1ms \
-  --tier Burstable \
-  --storage-size 32 \
-  --version 14
+az postgres flexible-server create --resource-group $RESOURCE_GROUP --name $POSTGRES_SERVER --location $LOCATION --admin-user $POSTGRES_ADMIN --admin-password $POSTGRES_PASSWORD --sku-name Standard_B1ms --tier Burstable --storage-size 32 --version 14
 
 # Create database
-az postgres flexible-server db create \
-  --resource-group $RESOURCE_GROUP \
-  --server-name $POSTGRES_SERVER \
-  --database-name $DB_NAME
+az postgres flexible-server db create --resource-group $RESOURCE_GROUP --server-name $POSTGRES_SERVER --database-name $DB_NAME
 
 # Configure firewall to allow Azure services
-az postgres flexible-server firewall-rule create \
-  --resource-group $RESOURCE_GROUP \
-  --name $POSTGRES_SERVER \
-  --rule-name AllowAzureServices \
-  --start-ip-address 0.0.0.0 \
-  --end-ip-address 0.0.0.0
+az postgres flexible-server firewall-rule create --resource-group $RESOURCE_GROUP --name $POSTGRES_SERVER --rule-name AllowAzureServices --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0
 ```
 
 ### Step 2: Build and Push Docker Image
@@ -79,33 +61,10 @@ ACCESS_TOKEN_SECRET=$(openssl rand -base64 32)
 REFRESH_TOKEN_SECRET=$(openssl rand -base64 32)
 
 # Deploy container
-az container create \
-  --resource-group $RESOURCE_GROUP \
-  --name groov-app \
-  --image $ACR_NAME.azurecr.io/groov:latest \
-  --registry-login-server $ACR_NAME.azurecr.io \
-  --registry-username $ACR_USERNAME \
-  --registry-password $ACR_PASSWORD \
-  --dns-name-label groov-app-unique \
-  --ports 3003 \
-  --environment-variables \
-    NODE_ENV=production \
-    PORT=3003 \
-    DB_HOST=$POSTGRES_SERVER.postgres.database.azure.com \
-    DB_USER=$POSTGRES_ADMIN \
-    DB_PORT=5432 \
-    DB_NAME=$DB_NAME \
-    DB_SSL=true \
-  --secure-environment-variables \
-    DB_PASSWORD=$POSTGRES_PASSWORD \
-    ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET \
-    REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET \
-  --cpu 1 \
-  --memory 1.5
+az container create --resource-group $RESOURCE_GROUP --name groov-app --image $ACR_NAME.azurecr.io/groov:latest --registry-login-server $ACR_NAME.azurecr.io --registry-username $ACR_USERNAME --registry-password $ACR_PASSWORD --dns-name-label groov-app-unique --ports 3003 --environment-variables   NODE_ENV=production   PORT=3003   DB_HOST=$POSTGRES_SERVER.postgres.database.azure.com   DB_USER=$POSTGRES_ADMIN   DB_PORT=5432   DB_NAME=$DB_NAME   DB_SSL=true --secure-environment-variables   DB_PASSWORD=$POSTGRES_PASSWORD   ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET   REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET --cpu 1 --memory 1.5
 
 # Get the FQDN
-az container show --resource-group $RESOURCE_GROUP \
-  --name groov-app --query ipAddress.fqdn -o tsv
+az container show --resource-group $RESOURCE_GROUP --name groov-app --query ipAddress.fqdn -o tsv
 ```
 
 Your application will be available at: `http://groov-app-unique.eastus.azurecontainer.io:3003`
@@ -118,47 +77,20 @@ Your application will be available at: `http://groov-app-unique.eastus.azurecont
 # Use same resource group, ACR, and PostgreSQL from Option 1
 
 # Create App Service Plan
-az appservice plan create \
-  --resource-group $RESOURCE_GROUP \
-  --name groov-plan \
-  --is-linux \
-  --sku B1
+az appservice plan create --resource-group $RESOURCE_GROUP --name groov-plan --is-linux --sku B1
 
 # Create Web App
-az webapp create \
-  --resource-group $RESOURCE_GROUP \
-  --plan groov-plan \
-  --name groov-app \
-  --deployment-container-image-name $ACR_NAME.azurecr.io/groov:latest
+az webapp create --resource-group $RESOURCE_GROUP --plan groov-plan --name groov-app --deployment-container-image-name $ACR_NAME.azurecr.io/groov:latest
 ```
 
 ### Step 2: Configure Web App
 
 ```bash
 # Configure ACR credentials
-az webapp config container set \
-  --resource-group $RESOURCE_GROUP \
-  --name groov-app \
-  --docker-registry-server-url https://$ACR_NAME.azurecr.io \
-  --docker-registry-server-user $ACR_USERNAME \
-  --docker-registry-server-password $ACR_PASSWORD
+az webapp config container set --resource-group $RESOURCE_GROUP --name groov-app --docker-registry-server-url https://$ACR_NAME.azurecr.io --docker-registry-server-user $ACR_USERNAME --docker-registry-server-password $ACR_PASSWORD
 
 # Configure environment variables
-az webapp config appsettings set \
-  --resource-group $RESOURCE_GROUP \
-  --name groov-app \
-  --settings \
-    NODE_ENV=production \
-    PORT=3003 \
-    DB_HOST=$POSTGRES_SERVER.postgres.database.azure.com \
-    DB_USER=$POSTGRES_ADMIN \
-    DB_PASSWORD=$POSTGRES_PASSWORD \
-    DB_PORT=5432 \
-    DB_NAME=$DB_NAME \
-    DB_SSL=true \
-    ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET \
-    REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET \
-    WEBSITES_PORT=3003
+az webapp config appsettings set --resource-group $RESOURCE_GROUP --name groov-app --settings   NODE_ENV=production   PORT=3003   DB_HOST=$POSTGRES_SERVER.postgres.database.azure.com   DB_USER=$POSTGRES_ADMIN   DB_PASSWORD=$POSTGRES_PASSWORD   DB_PORT=5432   DB_NAME=$DB_NAME   DB_SSL=true   ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET   REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET   WEBSITES_PORT=3003
 
 # Restart the app
 az webapp restart --resource-group $RESOURCE_GROUP --name groov-app
@@ -223,9 +155,7 @@ curl http://your-app-url:3003/
 curl http://your-app-url:3003/api-docs
 
 # Test authentication endpoint
-curl -X POST http://your-app-url:3003/auth/signup \
-  -H "Content-Type: application/json" \
-  -d '{"username":"testuser","password":"testpass123"}'
+curl -X POST http://your-app-url:3003/auth/signup -H "Content-Type: application/json" -d '{"username":"testuser","password":"testpass123"}'
 ```
 
 ## Updating the Application

@@ -1,0 +1,256 @@
+@import "../../styles/variables";
+@import "../../styles/mixins";
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-6;
+  gap: $spacing-4;
+
+  @include respond-to("md", "max") {
+    flex-direction: column;
+  }
+
+  h1 {
+    margin: 0 0 $spacing-2 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.filters {
+  margin-bottom: $spacing-6;
+}
+
+.searchInput {
+  width: 100%;
+  padding: $spacing-3;
+  border: 1px solid $gray-300;
+  border-radius: $radius-md;
+  font-family: inherit;
+  font-size: $font-size-base;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+}
+
+.createForm {
+  @include card;
+  margin-bottom: $spacing-6;
+  padding: $spacing-6;
+
+  h3 {
+    margin: 0 0 $spacing-4 0;
+  }
+}
+
+.formGroup {
+  margin-bottom: $spacing-4;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-2;
+    font-weight: $font-weight-medium;
+    color: $gray-700;
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: $spacing-3;
+    border: 1px solid $gray-300;
+    border-radius: $radius-md;
+    font-family: inherit;
+    font-size: $font-size-base;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-6;
+
+  @include respond-to("sm") {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-to("lg") {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.card {
+  @include card;
+  @include hover-lift;
+  text-decoration: none;
+  color: inherit;
+
+  h3 {
+    color: $primary;
+    margin-bottom: $spacing-3;
+  }
+
+  p {
+    margin-bottom: $spacing-4;
+  }
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: $font-size-sm;
+  color: $gray-600;
+  gap: $spacing-2;
+}
+
+.icon {
+  font-size: $font-size-base;
+}
+
+.badge {
+  background-color: $primary-light;
+  color: $white;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-transform: capitalize;
+}
+
+.detailContainer {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-6;
+  gap: $spacing-4;
+
+  @include respond-to("md", "max") {
+    flex-direction: column;
+  }
+
+  div {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+  }
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
+}
+
+.editMode {
+  @include card;
+  margin-bottom: $spacing-6;
+  padding: $spacing-6;
+
+  h3 {
+    margin: 0 0 $spacing-4 0;
+  }
+}
+
+.detailInfo {
+  @include card;
+  margin-bottom: $spacing-6;
+}
+
+.infoSection {
+  margin-bottom: $spacing-6;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  h3 {
+    margin-bottom: $spacing-3;
+    color: $gray-700;
+    font-size: $font-size-lg;
+  }
+
+  p {
+    margin: 0;
+    color: $gray-600;
+    line-height: 1.6;
+  }
+}
+
+.positionFlow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+}
+
+.position {
+  color: $primary;
+  text-transform: capitalize;
+}
+
+.arrow {
+  color: $gray-400;
+  font-size: $font-size-xl;
+}
+
+.parentLink {
+  color: $primary;
+  text-decoration: none;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.relatedSection {
+  margin-top: $spacing-8;
+
+  h2 {
+    margin-bottom: $spacing-6;
+  }
+}
+
+.eventLink {
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

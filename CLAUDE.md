@@ -4,53 +4,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Groov is a dance move learning and choreography platform designed to help dancers remember and learn new dance moves, specifically focused on Lindy Hop style. The system allows users to browse dance moves, create sequences, and rate choreographies.
+Groov is a full-stack dance move learning and choreography platform designed to help dancers remember and learn new dance moves, specifically focused on Lindy Hop style. The system allows users to browse dance moves, create sequences, and rate choreographies.
 
 **Technology Stack:**
-- Backend: Node.js with Express.js and InversifyJS for dependency injection
-- Database: PostgreSQL with Knex.js as query builder and ORM
-- TypeScript with decorators for controllers and dependency injection
-- Authentication: JWT-based auth with refresh tokens stored in HTTP-only cookies
-- API Documentation: Swagger/OpenAPI available at `/api-docs`
+- **Frontend**: React 18 with TypeScript, React Router v6, SCSS modules, Axios for API calls
+- **Backend**: Node.js with Express.js and InversifyJS for dependency injection
+- **Database**: PostgreSQL with Knex.js as query builder and ORM
+- **Authentication**: JWT-based auth with refresh tokens stored in HTTP-only cookies
+- **API Documentation**: Swagger/OpenAPI available at `/api-docs`
+- **Containerization**: Docker with Docker Compose for orchestration
 
 ## Development Commands
 
-### Building and Running
+### Backend Commands (in `/backend` directory)
 ```bash
+cd backend
 npm run build          # Compile TypeScript to dist/
 npm run dev            # Run development server with nodemon (hot reload)
 npm start              # Run production build from dist/index.js
 ```
 
-### Database Operations
+### Frontend Commands (in `/frontend` directory)
 ```bash
+cd frontend
+npm start              # Start React development server (port 3000)
+npm run build          # Build production bundle
+npm test               # Run tests
+```
+
+### Database Operations (in `/backend` directory)
+```bash
+cd backend
 npm run migrate        # Run pending migrations and regenerate TypeScript types
 npm run migration:add  # Create new migration file
 npm run rollback       # Rollback last migration batch
 npm run seed           # Run database seeding
 ```
 
-The `migrate` command automatically regenerates the `src/schema.ts` file with TypeScript types matching your database schema.
+The `migrate` command automatically regenerates the `backend/src/schema.ts` file with TypeScript types matching your database schema.
 
-### Docker Operations
+### Docker Operations (from project root)
 ```bash
-docker-compose up      # Start PostgreSQL database and backend services
-docker-compose down    # Stop all services
-docker build -t groov:latest .  # Build production Docker image
+docker-compose up           # Start all services (db, backend, frontend)
+docker-compose up --build   # Rebuild and start all services
+docker-compose down         # Stop all services
+docker-compose logs -f      # View logs from all services
 ```
 
-The PostgreSQL database runs on port `5435` (mapped from container port 5432) to avoid conflicts.
+**Services and Ports:**
+- **Database**: PostgreSQL on port 5435 (mapped from container 5432)
+- **Backend**: Node.js/Express API on port 3003
+- **Frontend**: React app served via nginx on port 3000
 
 ### Azure Deployment
-For detailed Azure deployment instructions, see `AZURE_DEPLOYMENT.md`. Quick reference:
-```bash
-# Build and test locally
-docker build -t groov:latest .
-docker run -p 3003:3003 --env-file .env groov:latest
-
-# Deploy to Azure (requires Azure CLI)
-# See AZURE_DEPLOYMENT.md for complete setup
-```
+For detailed Azure deployment instructions, see `AZURE_DEPLOYMENT.md`.
 
 ## Architecture
 
@@ -152,26 +159,83 @@ For Docker, the backend service uses `DATABASE_URL` environment variable pointin
 ### API Documentation
 Swagger documentation is defined in `src/swagger/swagger.json` and served at `/api-docs` with persistent authorization enabled.
 
-## Code Organization
+## Project Structure
 
 ```
-src/
-├── authProvider/      # Custom auth provider for inversify-express-utils
-├── controllers/       # HTTP endpoints (auth, dance moves, sequences, events)
-├── errors/           # Custom error classes
-├── ioc/              # Dependency injection configuration
-├── jobs/             # Background tasks and seed scripts
-├── repositories/     # Data access layer
-├── services/         # Business logic layer
-├── swagger/          # API documentation
-├── types/            # TypeScript type definitions
-├── schema.ts         # Auto-generated database types
-└── index.ts          # Application entry point
+Groov/
+├── backend/              # Backend Node.js API
+│   ├── src/
+│   │   ├── authProvider/    # Custom auth provider
+│   │   ├── controllers/     # HTTP endpoints
+│   │   ├── errors/          # Custom error classes
+│   │   ├── ioc/             # Dependency injection config
+│   │   ├── jobs/            # Background tasks and seeds
+│   │   ├── repositories/    # Data access layer
+│   │   ├── services/        # Business logic layer
+│   │   ├── swagger/         # API documentation
+│   │   ├── types/           # TypeScript types
+│   │   ├── schema.ts        # Auto-generated database types
+│   │   └── index.ts         # Application entry point
+│   ├── migrations/          # Database migration files
+│   ├── Dockerfile          # Backend Docker configuration
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend/            # React TypeScript frontend
+│   ├── public/          # Static assets
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   │   ├── common/      # Reusable UI components
+│   │   │   └── layout/      # Layout components
+│   │   ├── pages/           # Route-level page components
+│   │   │   ├── Auth/        # Login, Signup
+│   │   │   ├── DanceMoves/  # Dance move pages
+│   │   │   ├── Sequences/   # Sequence pages
+│   │   │   ├── Events/      # Event pages
+│   │   │   └── Home/        # Landing page
+│   │   ├── services/        # API service layer
+│   │   ├── context/         # React Context (AuthContext)
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── types/           # TypeScript interfaces
+│   │   ├── styles/          # SCSS design system
+│   │   ├── utils/           # Helper functions
+│   │   └── App.tsx          # Main app with routing
+│   ├── Dockerfile          # Frontend Docker configuration
+│   ├── nginx.conf          # Nginx configuration for production
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── docker-compose.yml  # Orchestration for all services
+├── CLAUDE.md           # This file
+└── AZURE_DEPLOYMENT.md # Azure deployment guide
 ```
+
+### Frontend Architecture
+
+**React Application with TypeScript:**
+- **Routing**: React Router v6 for client-side routing with protected routes
+- **State Management**: React Context API for authentication state
+- **API Layer**: Axios with interceptors for automatic token refresh
+- **Styling**: SCSS modules with design system (variables, mixins, utilities)
+- **Authentication**: Cookie-based JWT tokens, automatic refresh on 401 responses
+- **Components**: Functional components with hooks, separated into common/layout/pages
+
+**Key Frontend Features:**
+- Protected routes requiring authentication
+- Role-based UI rendering (admin vs user)
+- Responsive design with mobile-first approach
+- Comprehensive SCSS design system with variables and mixins
+- Type-safe API calls with TypeScript interfaces matching backend models
+
+**API Service Pattern:**
+All API calls go through service modules (`authService`, `danceMoveService`, etc.) that use a centralized Axios instance with:
+- Automatic cookie handling (`withCredentials: true`)
+- Token refresh interceptor for seamless re-authentication
+- Type-safe request/response handling
 
 ## Environment Variables
 
-The application uses the following environment variables (see `.env.example`):
+### Backend Environment Variables (in `/backend/.env.example`)
 
 **Server Configuration:**
 - `PORT` - Server port (default: 3003)
@@ -188,6 +252,9 @@ The application uses the following environment variables (see `.env.example`):
 **Authentication:**
 - `ACCESS_TOKEN_SECRET` - JWT access token secret
 - `REFRESH_TOKEN_SECRET` - JWT refresh token secret
+
+### Frontend Environment Variables (in `/frontend/.env.example`)
+- `REACT_APP_API_URL` - Backend API URL (default: http://localhost:3003)
 
 ## Deployment
 
@@ -208,7 +275,9 @@ docker-compose up  # Starts PostgreSQL and runs migrations automatically
 - The project uses `strict: false` in TypeScript config due to decorator metadata
 - All services and repositories use singleton scope
 - Soft deletes are the default (use `hardDelete()` for permanent removal)
-- CORS is configured for `http://localhost:3000` (presumably a React frontend)
+- CORS is configured for `http://localhost:3000` (React frontend)
 - Request/response logging middleware is enabled for debugging
 - The `knexfile.ts` now reads from environment variables for both development and production
 - Docker builds use multi-stage builds to minimize final image size
+- Frontend uses cookie-based authentication (no localStorage for tokens)
+- Nginx proxy forwards `/api/*` requests to backend in production
