@@ -1,24 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getAllSequences, getMySequences, createSequence } from '../../api/sequenceApi';
-import { getAllEvents } from '../../api/eventApi';
-import { DanceSequence, Event } from '../../types';
-import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/common/Button';
-import styles from './Sequences.module.scss';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  getAllSequences,
+  getMySequences,
+  createSequence,
+} from "../../api/sequenceApi";
+import { getAllEvents } from "../../api/eventApi";
+import { DanceSequence, Event } from "../../types";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "../../components/common/Button";
+import styles from "./Sequences.module.scss";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendar, faUser } from "@fortawesome/free-solid-svg-icons";
 
 export const SequencesList: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [sequences, setSequences] = useState<DanceSequence[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newSequenceName, setNewSequenceName] = useState('');
-  const [newSequenceDescription, setNewSequenceDescription] = useState('');
-  const [newSequenceEventId, setNewSequenceEventId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [newSequenceName, setNewSequenceName] = useState("");
+  const [newSequenceDescription, setNewSequenceDescription] = useState("");
+  const [newSequenceEventId, setNewSequenceEventId] = useState<number | null>(
+    null
+  );
+  const [searchTerm, setSearchTerm] = useState("");
   const [showMySequences, setShowMySequences] = useState(true);
 
   const loadSequences = async () => {
@@ -31,7 +39,7 @@ export const SequencesList: React.FC = () => {
       }
       setSequences(sequencesData);
     } catch (err: any) {
-      setError('Failed to load sequences');
+      setError("Failed to load sequences");
     }
   };
 
@@ -42,7 +50,7 @@ export const SequencesList: React.FC = () => {
         setEvents(eventsData);
         await loadSequences();
       } catch (err: any) {
-        setError('Failed to load data');
+        setError("Failed to load data");
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +67,7 @@ export const SequencesList: React.FC = () => {
 
   const getEventName = (eventId: number | null) => {
     if (!eventId) return null;
-    const event = events.find(e => e.id === eventId);
+    const event = events.find((e) => e.id === eventId);
     return event?.name;
   };
 
@@ -75,7 +83,7 @@ export const SequencesList: React.FC = () => {
       });
       navigate(`/sequences/${newSequence.id}`);
     } catch (err: any) {
-      alert('Failed to create sequence');
+      alert("Failed to create sequence");
     }
   };
 
@@ -93,13 +101,13 @@ export const SequencesList: React.FC = () => {
           <h1>Dance Sequences</h1>
           <p className="text-muted">
             {isAuthenticated && showMySequences
-              ? 'Your personal dance sequences'
-              : 'Explore choreographed dance sequences created by the community'}
+              ? "Your personal dance sequences"
+              : "Explore choreographed dance sequences created by the community"}
           </p>
         </div>
         {isAuthenticated && (
           <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-            {showCreateForm ? 'Cancel' : 'Create Sequence'}
+            {showCreateForm ? "Cancel" : "Create Sequence"}
           </Button>
         )}
       </div>
@@ -116,13 +124,17 @@ export const SequencesList: React.FC = () => {
         {isAuthenticated && (
           <div className={styles.toggleContainer}>
             <button
-              className={`${styles.toggleButton} ${showMySequences ? styles.active : ''}`}
+              className={`${styles.toggleButton} ${
+                showMySequences ? styles.active : ""
+              }`}
               onClick={() => setShowMySequences(true)}
             >
               My Sequences
             </button>
             <button
-              className={`${styles.toggleButton} ${!showMySequences ? styles.active : ''}`}
+              className={`${styles.toggleButton} ${
+                !showMySequences ? styles.active : ""
+              }`}
               onClick={() => setShowMySequences(false)}
             >
               All Sequences
@@ -160,8 +172,12 @@ export const SequencesList: React.FC = () => {
               <label htmlFor="event">Event (optional)</label>
               <select
                 id="event"
-                value={newSequenceEventId || ''}
-                onChange={(e) => setNewSequenceEventId(e.target.value ? parseInt(e.target.value) : null)}
+                value={newSequenceEventId || ""}
+                onChange={(e) =>
+                  setNewSequenceEventId(
+                    e.target.value ? parseInt(e.target.value) : null
+                  )
+                }
               >
                 <option value="">No event</option>
                 {events.map((event) => (
@@ -172,8 +188,14 @@ export const SequencesList: React.FC = () => {
               </select>
             </div>
             <div className={styles.formActions}>
-              <Button type="submit" variant="primary">Create</Button>
-              <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+              <Button type="submit" variant="primary">
+                Create
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCreateForm(false)}
+              >
                 Cancel
               </Button>
             </div>
@@ -188,20 +210,28 @@ export const SequencesList: React.FC = () => {
       ) : (
         <div className={styles.grid}>
           {sequences.map((sequence) => (
-            <Link to={`/sequences/${sequence.id}`} key={sequence.id} className={styles.card}>
+            <Link
+              to={`/sequences/${sequence.id}`}
+              key={sequence.id}
+              className={styles.card}
+            >
               <h3>{sequence.name}</h3>
               {sequence.description && (
                 <p className="text-muted">{sequence.description}</p>
               )}
               {sequence.creator_username && (
                 <div className={styles.meta}>
-                  <span className={styles.icon}>👤</span>
+                  <span className={styles.icon}>
+                    <FontAwesomeIcon icon={faUser} />
+                  </span>
                   <span>By {sequence.creator_username}</span>
                 </div>
               )}
               {sequence.event_id && (
                 <div className={styles.meta}>
-                  <span className={styles.icon}>🎪</span>
+                  <span className={styles.icon}>
+                    <FontAwesomeIcon icon={faCalendar} />
+                  </span>
                   <span>{getEventName(sequence.event_id)}</span>
                 </div>
               )}

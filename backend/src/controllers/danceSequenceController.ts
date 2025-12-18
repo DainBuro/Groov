@@ -66,8 +66,7 @@ export class DanceSequenceController extends BaseHttpController {
       const userId = this.httpContext.user.details.id;
       const sequence = await this.danceSequenceService.createDanceSequence({
         ...body,
-        user_id: userId,
-        creator_id: userId
+        user_id: userId
       });
       return this.created('/dance-sequences', sequence);
     } catch (error: any) {
@@ -93,11 +92,7 @@ export class DanceSequenceController extends BaseHttpController {
       const userId = this.httpContext.user.details.id;
       const userRole = this.httpContext.user.details.role;
 
-      const updated = await this.danceSequenceService.updateDanceSequence(
-        id,
-        { ...body, user_id: userId },
-        userRole
-      );
+      const updated = await this.danceSequenceService.updateDanceSequence(id, { ...body, user_id: userId }, userRole);
       return this.ok(updated);
     } catch (error: any) {
       return this.badRequest(error.message || `Could not update dance sequence with id: ${id}`);

@@ -12,6 +12,9 @@ import { DanceSequence, Event, MoveOfSequence, DanceMove } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
 import styles from "./Sequences.module.scss";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendar, faUser } from "@fortawesome/free-solid-svg-icons";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 export const SequenceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +30,7 @@ export const SequenceDetail: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedMoveIds, setSelectedMoveIds] = useState<number[]>([]);
   const [moveSearchTerm, setMoveSearchTerm] = useState("");
+  const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
 
   const isOwner =
     isAuthenticated && user && sequence && user.id === sequence.user_id;
@@ -62,10 +66,7 @@ export const SequenceDetail: React.FC = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (
-      !sequence ||
-      !window.confirm(`Are you sure you want to delete "${sequence.name}"?`)
-    ) {
+    if (!sequence) {
       return;
     }
 
@@ -147,6 +148,13 @@ export const SequenceDetail: React.FC = () => {
 
   return (
     <div className="container">
+      <ConfirmModal
+        isOpen={openDeleteModal}
+        onConfirm={handleDelete}
+        onClose={() => setIsOpenDeleteModal(false)}
+        title="Delete sequence"
+        message={`Are you sure you want to delete sequence "${sequence?.name}"? This action cannot be undone.`}
+      />
       <div className={styles.detailContainer}>
         <div className={styles.detailHeader}>
           <h1>{sequence.name}</h1>
@@ -156,7 +164,10 @@ export const SequenceDetail: React.FC = () => {
               <Button variant="primary" onClick={handleEditToggle}>
                 {isEditMode ? "Cancel Edit" : "Edit Moves"}
               </Button>
-              <Button variant="danger" onClick={handleDelete}>
+              <Button
+                variant="danger"
+                onClick={() => setIsOpenDeleteModal(true)}
+              >
                 Delete Sequence
               </Button>
             </div>
@@ -171,13 +182,17 @@ export const SequenceDetail: React.FC = () => {
           )}
           {sequence.creator_username && (
             <div className={styles.infoRow}>
-              <span className={styles.icon}>👤</span>
+              <span className={styles.icon}>
+                <FontAwesomeIcon icon={faUser} />
+              </span>
               <span>Created by {sequence.creator_username}</span>
             </div>
           )}
           {event && (
             <div className={styles.infoRow}>
-              <span className={styles.icon}>🎪</span>
+              <span className={styles.icon}>
+                <FontAwesomeIcon icon={faCalendar} />
+              </span>
               <Link to={`/events/${event.id}`}>{event.name}</Link>
             </div>
           )}

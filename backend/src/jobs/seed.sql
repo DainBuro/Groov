@@ -98,7 +98,7 @@ INSERT INTO refresh_token (id, user_id, token, created_at, expires_at) VALUES
 (2, 2, 'john_refresh_token_456', NOW(), NOW() + INTERVAL '7 days'),
 (3, 3, 'sarah_refresh_token_789', NOW(), NOW() + INTERVAL '7 days');
 
--- Update sequences to start from higher numbers (optional but good practice)
+-- Update sequences to start from higher numbers
 SELECT setval('app_user_id_seq', (SELECT MAX(id) FROM app_user));
 SELECT setval('event_id_seq', (SELECT MAX(id) FROM event));
 SELECT setval('dance_move_id_seq', (SELECT MAX(id) FROM dance_move));

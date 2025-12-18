@@ -1,12 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { getDanceMoveById, updateDanceMove, deleteDanceMove, getAllDanceMoves } from '../../api/danceMoveApi';
-import { getAllSequences, getSequenceMoves } from '../../api/sequenceApi';
-import { getAllEvents } from '../../api/eventApi';
-import { DanceMove, DanceSequence, Event, DifficultyEnum, KeyPositionEnum } from '../../types';
-import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/common/Button';
-import styles from './DanceMoves.module.scss';
+import React, { useEffect, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import {
+  getDanceMoveById,
+  updateDanceMove,
+  deleteDanceMove,
+  getAllDanceMoves,
+} from "../../api/danceMoveApi";
+import { getAllSequences, getSequenceMoves } from "../../api/sequenceApi";
+import { getAllEvents } from "../../api/eventApi";
+import {
+  DanceMove,
+  DanceSequence,
+  Event,
+  DifficultyEnum,
+  KeyPositionEnum,
+} from "../../types";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "../../components/common/Button";
+import styles from "./DanceMoves.module.scss";
+import { faCalendar } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 interface SequenceWithEvent extends DanceSequence {
   event?: Event | null;
@@ -20,18 +34,29 @@ export const DanceMoveDetail: React.FC = () => {
   const [move, setMove] = useState<DanceMove | null>(null);
   const [parentMove, setParentMove] = useState<DanceMove | null>(null);
   const [allMoves, setAllMoves] = useState<DanceMove[]>([]);
-  const [relatedSequences, setRelatedSequences] = useState<SequenceWithEvent[]>([]);
+  const [relatedSequences, setRelatedSequences] = useState<SequenceWithEvent[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
 
   // Edit form state
-  const [editName, setEditName] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editDifficulty, setEditDifficulty] = useState<DifficultyEnum>(DifficultyEnum.Easy);
-  const [editStartPosition, setEditStartPosition] = useState<KeyPositionEnum>(KeyPositionEnum.Closed);
-  const [editEndPosition, setEditEndPosition] = useState<KeyPositionEnum>(KeyPositionEnum.Closed);
-  const [editParentMoveId, setEditParentMoveId] = useState<number | undefined>(undefined);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editDifficulty, setEditDifficulty] = useState<DifficultyEnum>(
+    DifficultyEnum.Easy
+  );
+  const [editStartPosition, setEditStartPosition] = useState<KeyPositionEnum>(
+    KeyPositionEnum.Closed
+  );
+  const [editEndPosition, setEditEndPosition] = useState<KeyPositionEnum>(
+    KeyPositionEnum.Closed
+  );
+  const [editParentMoveId, setEditParentMoveId] = useState<number | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     const fetchMoveData = async () => {
@@ -58,25 +83,29 @@ export const DanceMoveDetail: React.FC = () => {
             const moves = await getSequenceMoves(seq.id);
             return {
               sequence: seq,
-              hasMove: moves.some(m => m.move_id === parseInt(id))
+              hasMove: moves.some((m) => m.move_id === parseInt(id)),
             };
           })
         );
 
         const filteredSequences = sequencesWithMoves
-          .filter(item => item.hasMove)
-          .map(item => item.sequence);
+          .filter((item) => item.hasMove)
+          .map((item) => item.sequence);
 
         // Fetch events for sequences
         const events = await getAllEvents();
-        const sequencesWithEvents: SequenceWithEvent[] = filteredSequences.map(seq => ({
-          ...seq,
-          event: seq.event_id ? events.find(e => e.id === seq.event_id) || null : null
-        }));
+        const sequencesWithEvents: SequenceWithEvent[] = filteredSequences.map(
+          (seq) => ({
+            ...seq,
+            event: seq.event_id
+              ? events.find((e) => e.id === seq.event_id) || null
+              : null,
+          })
+        );
 
         setRelatedSequences(sequencesWithEvents);
       } catch (err: any) {
-        setError('Failed to load dance move details');
+        setError("Failed to load dance move details");
       } finally {
         setIsLoading(false);
       }
@@ -89,7 +118,7 @@ export const DanceMoveDetail: React.FC = () => {
     if (!isEditMode && move) {
       // Entering edit mode - populate form fields
       setEditName(move.name);
-      setEditDescription(move.description || '');
+      setEditDescription(move.description || "");
       setEditDifficulty(move.difficulty);
       setEditStartPosition(move.start_position);
       setEditEndPosition(move.end_position);
@@ -122,20 +151,20 @@ export const DanceMoveDetail: React.FC = () => {
         setParentMove(null);
       }
     } catch (err: any) {
-      alert('Failed to update dance move');
+      alert("Failed to update dance move");
     }
   };
 
   const handleDelete = async () => {
-    if (!move || !window.confirm(`Are you sure you want to delete "${move.name}"?`)) {
+    if (!move) {
       return;
     }
 
     try {
       await deleteDanceMove(move.id);
-      navigate('/moves');
+      navigate("/moves");
     } catch (err: any) {
-      alert('Failed to delete dance move. There may be sequences using it.');
+      alert("Failed to delete dance move. There may be sequences using it.");
     }
   };
 
@@ -145,6 +174,13 @@ export const DanceMoveDetail: React.FC = () => {
 
   return (
     <div className="container">
+      <ConfirmModal
+        isOpen={openDeleteModal}
+        onConfirm={handleDelete}
+        onClose={() => setIsOpenDeleteModal(false)}
+        title="Delete move"
+        message={`Are you sure you want to delete move "${move?.name}"? This action cannot be undone.`}
+      />
       <div className={styles.detailContainer}>
         <div className={styles.detailHeader}>
           <div>
@@ -157,7 +193,10 @@ export const DanceMoveDetail: React.FC = () => {
               <Button variant="primary" onClick={handleEditToggle}>
                 Edit Move
               </Button>
-              <Button variant="danger" onClick={handleDelete}>
+              <Button
+                variant="danger"
+                onClick={() => setIsOpenDeleteModal(true)}
+              >
                 Delete Move
               </Button>
             </div>
@@ -167,7 +206,12 @@ export const DanceMoveDetail: React.FC = () => {
         {isEditMode ? (
           <div className={styles.editMode}>
             <h3>Edit Dance Move</h3>
-            <form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveEdit();
+              }}
+            >
               <div className={styles.formGroup}>
                 <label htmlFor="name">Move Name *</label>
                 <input
@@ -194,7 +238,9 @@ export const DanceMoveDetail: React.FC = () => {
                 <select
                   id="difficulty"
                   value={editDifficulty}
-                  onChange={(e) => setEditDifficulty(e.target.value as DifficultyEnum)}
+                  onChange={(e) =>
+                    setEditDifficulty(e.target.value as DifficultyEnum)
+                  }
                   required
                 >
                   {Object.values(DifficultyEnum).map((diff) => (
@@ -210,7 +256,9 @@ export const DanceMoveDetail: React.FC = () => {
                 <select
                   id="startPosition"
                   value={editStartPosition}
-                  onChange={(e) => setEditStartPosition(e.target.value as KeyPositionEnum)}
+                  onChange={(e) =>
+                    setEditStartPosition(e.target.value as KeyPositionEnum)
+                  }
                   required
                 >
                   {Object.values(KeyPositionEnum).map((pos) => (
@@ -226,7 +274,9 @@ export const DanceMoveDetail: React.FC = () => {
                 <select
                   id="endPosition"
                   value={editEndPosition}
-                  onChange={(e) => setEditEndPosition(e.target.value as KeyPositionEnum)}
+                  onChange={(e) =>
+                    setEditEndPosition(e.target.value as KeyPositionEnum)
+                  }
                   required
                 >
                   {Object.values(KeyPositionEnum).map((pos) => (
@@ -241,12 +291,16 @@ export const DanceMoveDetail: React.FC = () => {
                 <label htmlFor="parentMove">Parent Move (Optional)</label>
                 <select
                   id="parentMove"
-                  value={editParentMoveId || ''}
-                  onChange={(e) => setEditParentMoveId(e.target.value ? parseInt(e.target.value) : undefined)}
+                  value={editParentMoveId || ""}
+                  onChange={(e) =>
+                    setEditParentMoveId(
+                      e.target.value ? parseInt(e.target.value) : undefined
+                    )
+                  }
                 >
                   <option value="">None</option>
                   {allMoves
-                    .filter(m => m.id !== move.id)
+                    .filter((m) => m.id !== move.id)
                     .map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.name}
@@ -256,8 +310,14 @@ export const DanceMoveDetail: React.FC = () => {
               </div>
 
               <div className={styles.formActions}>
-                <Button type="submit" variant="primary">Save Changes</Button>
-                <Button type="button" variant="outline" onClick={handleEditToggle}>
+                <Button type="submit" variant="primary">
+                  Save Changes
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleEditToggle}
+                >
                   Cancel
                 </Button>
               </div>
@@ -284,7 +344,10 @@ export const DanceMoveDetail: React.FC = () => {
             {parentMove && (
               <div className={styles.infoSection}>
                 <h3>Parent Move</h3>
-                <Link to={`/moves/${parentMove.id}`} className={styles.parentLink}>
+                <Link
+                  to={`/moves/${parentMove.id}`}
+                  className={styles.parentLink}
+                >
                   {parentMove.name}
                 </Link>
               </div>
@@ -296,7 +359,7 @@ export const DanceMoveDetail: React.FC = () => {
           <div className={styles.relatedSection}>
             <h2>Sequences Using This Move</h2>
             <div className={styles.grid}>
-              {relatedSequences.map(sequence => (
+              {relatedSequences.map((sequence) => (
                 <Link
                   to={`/sequences/${sequence.id}`}
                   key={sequence.id}
@@ -308,7 +371,9 @@ export const DanceMoveDetail: React.FC = () => {
                   )}
                   {sequence.event && (
                     <div className={styles.meta}>
-                      <span className={styles.icon}>🎪</span>
+                      <span className={styles.icon}>
+                        <FontAwesomeIcon icon={faCalendar} />
+                      </span>
                       <Link
                         to={`/events/${sequence.event.id}`}
                         onClick={(e) => e.stopPropagation()}

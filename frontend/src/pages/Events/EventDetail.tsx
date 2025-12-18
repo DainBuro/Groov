@@ -6,6 +6,9 @@ import { Event, DanceSequence } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
 import styles from "./Events.module.scss";
+import { faCalendar, faMapPin } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import ConfirmModal from "../../components/common/ConfirmModal";
 
 export const EventDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +20,7 @@ export const EventDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
 
   // Edit form state
   const [editName, setEditName] = useState("");
@@ -76,10 +80,7 @@ export const EventDetail: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (
-      !event ||
-      !window.confirm(`Are you sure you want to delete "${event.name}"?`)
-    ) {
+    if (!event) {
       return;
     }
 
@@ -110,6 +111,13 @@ export const EventDetail: React.FC = () => {
 
   return (
     <div className="container">
+      <ConfirmModal
+        isOpen={openDeleteModal}
+        onConfirm={handleDelete}
+        onClose={() => setIsOpenDeleteModal(false)}
+        title="Delete event"
+        message={`Are you sure you want to delete event "${event?.name}"? This action cannot be undone.`}
+      />
       <div className={styles.detailContainer}>
         <div className={styles.detailHeader}>
           <h1>{event.name}</h1>
@@ -119,7 +127,10 @@ export const EventDetail: React.FC = () => {
               <Button variant="primary" onClick={handleEditToggle}>
                 Edit Event
               </Button>
-              <Button variant="danger" onClick={handleDelete}>
+              <Button
+                variant="danger"
+                onClick={() => setIsOpenDeleteModal(true)}
+              >
                 Delete Event
               </Button>
             </div>
@@ -184,12 +195,16 @@ export const EventDetail: React.FC = () => {
         ) : (
           <div className={styles.detailInfo}>
             <div className={styles.infoRow}>
-              <span className={styles.icon}>📅</span>
+              <span className={styles.icon}>
+                <FontAwesomeIcon icon={faCalendar} />
+              </span>
               <span>{formatDate(event.date)}</span>
             </div>
             {event.location && (
               <div className={styles.infoRow}>
-                <span className={styles.icon}>📍</span>
+                <span className={styles.icon}>
+                  <FontAwesomeIcon icon={faMapPin} />
+                </span>
                 <span>{event.location}</span>
               </div>
             )}

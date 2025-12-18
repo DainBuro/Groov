@@ -21,22 +21,25 @@ export class DanceSequenceService {
     }
     const { id, ...safeData } = data;
 
-    // Set creator_id to user_id if not provided
     const sequenceData = {
       ...safeData,
-      creator_id: safeData.creator_id || data.user_id
+      user_id: safeData.user_id || data.user_id
     };
 
     return this.danceSequenceRepository.createDanceSequence(sequenceData);
   }
 
-  async updateDanceSequence(id: number, data: Partial<DanceSequence>, userRole?: RoleType): Promise<DanceSequence | null> {
+  async updateDanceSequence(
+    id: number,
+    data: Partial<DanceSequence>,
+    userRole?: RoleType
+  ): Promise<DanceSequence | null> {
     const existing = await this.danceSequenceRepository.getDanceSequence(id);
     if (!existing) {
       throw new Error(`Dance sequence with ID ${id} not found.`);
     }
     // Allow update if user is creator or admin
-    if (existing.creator_id !== data.user_id && userRole !== RoleType.Admin) {
+    if (existing.user_id !== data.user_id && userRole !== RoleType.Admin) {
       throw new Error(`Dance sequence with ID ${id} is not accessible.`);
     }
     return this.danceSequenceRepository.updateDanceSequence({ ...data, id });
@@ -48,7 +51,7 @@ export class DanceSequenceService {
       throw new Error(`Dance sequence with ID ${id} not found.`);
     }
     // Allow delete if user is creator or admin
-    if (existing.creator_id !== user_id && userRole !== RoleType.Admin) {
+    if (existing.user_id !== user_id && userRole !== RoleType.Admin) {
       throw new Error(`Dance sequence with ID ${id} is not accessible.`);
     }
     return this.danceSequenceRepository.deleteDanceSequence(id);

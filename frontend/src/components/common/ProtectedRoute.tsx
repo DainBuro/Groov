@@ -1,7 +1,6 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { RoleType } from '../../types';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,12 +9,16 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
-  requireAdmin = false
+  requireAdmin = false,
 }) => {
   const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="flex-center" style={{ height: '100vh' }}>Loading...</div>;
+    return (
+      <div className="flex-center" style={{ height: "100vh" }}>
+        Loading...
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

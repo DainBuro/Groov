@@ -61,7 +61,6 @@ export interface DanceMoveFormData {
 export interface DanceSequence {
   id: number;
   user_id: number;
-  creator_id: number;
   creator_username?: string;
   event_id: number | null;
   name: string;

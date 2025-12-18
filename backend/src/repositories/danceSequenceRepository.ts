@@ -11,13 +11,10 @@ export class DanceSequenceRepository extends BaseRepository {
     }
     const [sequence] = await this.get<any>(
       Table.DanceSequence,
-      [
-        `${Table.DanceSequence}.*`,
-        'app_user.username as creator_username'
-      ],
+      [`${Table.DanceSequence}.*`, 'app_user.username as creator_username'],
       (query) => {
         query
-          .leftJoin('app_user', `${Table.DanceSequence}.creator_id`, 'app_user.id')
+          .leftJoin('app_user', `${Table.DanceSequence}.user_id`, 'app_user.id')
           .where(`${Table.DanceSequence}.id`, id);
       }
     );
@@ -27,17 +24,14 @@ export class DanceSequenceRepository extends BaseRepository {
   async getAllDanceSequences(search?: string, creatorId?: number): Promise<any[]> {
     return this.get<any>(
       Table.DanceSequence,
-      [
-        `${Table.DanceSequence}.*`,
-        'app_user.username as creator_username'
-      ],
+      [`${Table.DanceSequence}.*`, 'app_user.username as creator_username'],
       (query) => {
-        query.leftJoin('app_user', `${Table.DanceSequence}.creator_id`, 'app_user.id');
+        query.leftJoin('app_user', `${Table.DanceSequence}.user_id`, 'app_user.id');
         if (search) {
           query.where(`${Table.DanceSequence}.name`, 'ilike', `%${search}%`);
         }
         if (creatorId) {
-          query.where(`${Table.DanceSequence}.creator_id`, creatorId);
+          query.where(`${Table.DanceSequence}.user_id`, creatorId);
         }
         return query.orderBy(`${Table.DanceSequence}.id`, 'desc');
       }

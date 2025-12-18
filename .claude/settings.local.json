@@ -28,7 +28,17 @@
       "Bash(npm run migrate:*)",
       "Bash(npx knex:*)",
       "Bash(docker exec:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(az group list:*)",
+      "Bash(az acr list:*)",
+      "Bash(az container list:*)",
+      "Bash(az logout:*)",
+      "Bash(az login:*)",
+      "Bash(az acr login:*)",
+      "Bash(docker tag:*)",
+      "Bash(docker push:*)",
+      "Bash(openssl rand:*)",
+      "Bash(timeout 10 az container logs:*)"
     ],
     "deny": [],
     "ask": []

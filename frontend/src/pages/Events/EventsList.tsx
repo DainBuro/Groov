@@ -1,29 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getAllEvents, createEvent } from '../../api/eventApi';
-import { Event } from '../../types';
-import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/common/Button';
-import styles from './Events.module.scss';
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getAllEvents, createEvent } from "../../api/eventApi";
+import { Event } from "../../types";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "../../components/common/Button";
+import styles from "./Events.module.scss";
+import { faCalendar, faMapPin } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export const EventsList: React.FC = () => {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newEventName, setNewEventName] = useState('');
-  const [newEventLocation, setNewEventLocation] = useState('');
-  const [newEventDate, setNewEventDate] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newEventName, setNewEventName] = useState("");
+  const [newEventLocation, setNewEventLocation] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
 
   const loadEvents = async () => {
     try {
       const data = await getAllEvents(searchTerm || undefined);
       setEvents(data);
     } catch (err: any) {
-      setError('Failed to load events');
+      setError("Failed to load events");
     }
   };
 
@@ -46,12 +48,12 @@ export const EventsList: React.FC = () => {
   }, [searchTerm]);
 
   const formatDate = (date: Date | null) => {
-    if (!date) return 'Date TBA';
+    if (!date) return "Date TBA";
     const eventDate = new Date(date);
-    return eventDate.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return eventDate.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -67,7 +69,7 @@ export const EventsList: React.FC = () => {
       });
       navigate(`/events/${newEvent.id}`);
     } catch (err: any) {
-      alert('Failed to create event');
+      alert("Failed to create event");
     }
   };
 
@@ -83,7 +85,7 @@ export const EventsList: React.FC = () => {
         </div>
         {isAdmin && (
           <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-            {showCreateForm ? 'Cancel' : 'Create Event'}
+            {showCreateForm ? "Cancel" : "Create Event"}
           </Button>
         )}
       </div>
@@ -134,8 +136,14 @@ export const EventsList: React.FC = () => {
               />
             </div>
             <div className={styles.formActions}>
-              <Button type="submit" variant="primary">Create</Button>
-              <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+              <Button type="submit" variant="primary">
+                Create
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCreateForm(false)}
+              >
                 Cancel
               </Button>
             </div>
@@ -150,15 +158,23 @@ export const EventsList: React.FC = () => {
       ) : (
         <div className={styles.grid}>
           {events.map((event) => (
-            <Link to={`/events/${event.id}`} key={event.id} className={styles.card}>
+            <Link
+              to={`/events/${event.id}`}
+              key={event.id}
+              className={styles.card}
+            >
               <h3>{event.name}</h3>
               <div className={styles.meta}>
-                <span className={styles.icon}>📅</span>
+                <span className={styles.icon}>
+                  <FontAwesomeIcon icon={faCalendar} />
+                </span>
                 <span>{formatDate(event.date)}</span>
               </div>
               {event.location && (
                 <div className={styles.meta}>
-                  <span className={styles.icon}>📍</span>
+                  <span className={styles.icon}>
+                    <FontAwesomeIcon icon={faMapPin} />
+                  </span>
                   <span>{event.location}</span>
                 </div>
               )}
