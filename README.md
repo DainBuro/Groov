@@ -1,63 +1,108 @@
 # Groov
 
-# 1. SPRENDŽIAMO UŽDAVINIO APRAŠYMAS
+## Sprendžiamo uždavinio aprašymas
 
-## 1.1. Sistemos paskirtis
-Projekto tikslas – padėti šokėjams prisiminti ar išmokti naujus šokių judesius, ruošti pasirodymus.  
-Veikimo principas – internetinio puslapio platformą sudarys dvi dalys:  
-- naršyklėje pasiekiamas puslapis, skirtas sistemos naudotojams matyti ir sąveikauti su sistema;  
-- serverinė dalis, kuri siųs informaciją naudotojų naršyklėms ir saugos informaciją duomenų bazėje.  
+### Sistemos paskirtis
+Projekto tikslas – padėti šokėjams prisiminti ar išmokti naujus šokių judesius, ruošti pasirodymus.
 
-Šokėjui norint naudotis sistema, jo bus prašoma prisijungti.  
-Neprisijungę vartotojai taip pat galės naudotis sistemos peržiūros pajėgumais:  
-- peržiūrėti šokių judesius ir jų variacijas;  
-- peržiūrėti prisijungusių žmonių sudarytas šokių sekas.  
+Sistema susideda iš:
+- **Klientinės dalies** (naršyklėje veikiantis puslapis)
+- **Serverinės dalies** (API, duomenų bazė)
 
-Prisijungęs naudotojas galės šias sekas sudaryti pats, jungdamas kelis suderinamus judesius iš eilės. Judesiai bus siūlomi pagal tai, ar sudera pradžios ir pabaigos pozicijos.  
+**Prieigos teisės:**
+- **Neprisijungę** vartotojai gali peržiūrėti judesius, kombinacijas.
+- **Prisijungę** vartotojai gali kurti savo šokių sekas, reitinguoti kitų.
+- **Administratorius** tvarko judesius, variacijas, vartotojus.
 
-Taip pat bus galima reitinguoti kitų žmonių sudarytas šokių sekas.  
-Administratorius bus atsakingas už sistemos palaikymą: judesių ir jų variacijų saugojimą, žalingų vartotojų paskyrų šalinimą.  
+Sistema orientuota į „lindy hop“ stilių, bet palaiko kitų stilių pridėjimą.
 
-Sistemos pradinė versija bus orientuota į „lindy hop“ šokio stilių, tačiau duomenų bazė bus paruošta naujų stilių pridėjimui.
+### Funkciniai reikalavimai
 
----
+**Neregistruotas vartotojas gali:**
+- Peržiūrėti pagrindinį puslapį
+- Peržiūrėti šokių judesius ir jų variacijas
+- Filtruoti ir ieškoti judesių
+- Peržiūrėti kitų žmonių šokius
+- Registruotis
 
-## 1.2. Funkciniai reikalavimai
+**Registruotas vartotojas gali:**
+- Prisijungti / atsijungti
+- Gauti judesių rekomendacijas
+- Valdyti savo šokius (judesių sekas)
+- Reitinguoti kitų žmonių šokius
 
-### Neregistruotas sistemos naudotojas gali:
-- Peržiūrėti pagrindinį puslapį  
-- Peržiūrėti šokių judesius  
-- Peržiūrėti judesių variacijas  
-- Filtruoti judesius pagal sudėtingumą, pradžios poziciją, pabaigos poziciją  
-- Ieškoti judesių pagal pavadinimą  
-- Peržiūrėti kitų žmonių išsaugotus šokius  
-- Prisiregistruoti prie sistemos  
-
-### Registruotas sistemos naudotojas gali:
-- Prisijungti prie sistemos  
-- Atsijungti nuo sistemos  
-- Gauti judesių rekomendacijas pagal prieš tai buvusį judesį  
-- Valdyti savo šokius (judesių sekas)  
-- Reitinguoti kitų žmonių šokius  
-
-### Administratorius gali:
-- Valdyti šokio judesius  
-- Valdyti judesių variacijas  
-- Šalinti naudotojus  
+**Administratorius gali:**
+- Valdyti šokio judesius ir jų variacijas
+- Šalinti naudotojus
 
 ---
 
-# 2. PASIRINKTOS TECHNOLOGIJOS
+## Pasirinktos technologijos
 
-### Sistemos komponentai:
-- **Kliento dalis (Front-End):** sukurta naudojant React.js karkasą  
-- **Serverio dalis (Back-End):** įgyvendinta su Node.js bei Express.js karkasu  
-- **Duomenų bazė:** PostgreSQL sistema  
+**Stack:**
+- **Front-End:** React.js
+- **Back-End:** Node.js + Express.js
+- **Duomenų bazė:** PostgreSQL
 
-Toliau pavaizduota sistemos diegimo diagrama. Sistemos talpinimui yra naudojamas **Azure serveris**. Kiekviena sistemos dalis yra diegiama tame pačiame serveryje.  
+**Diegimas:**
+- **Konteinerizacija:** Docker + Docker Compose (trijų konteinerių: Nginx, Node.js, PostgreSQL)
+- **Debesų platforma:** Azure (Container Registry, Container Instances / App Service, PostgreSQL Flexible Server)
 
-Internetinė aplikacija yra pasiekiama per **HTTP protokolą** naudojant naršyklę.  
+**Autentifikacija:** JWT (HTTP-only slapukuose)
 
-Sistemos veikimui naudojamas **Next.js serveris**, kuris atsakingas už React komponentų pateikimą bei API užklausų apdorojimą.  
+**Projekto saugykla:** [GitHub – Groov](https://github.com/DainBuro/Groov)
 
-Duomenų mainams su **PostgreSQL duomenų baze** Next.js serveris pasitelkia **ORM sąsają**, kuri užtikrina duomenų manipuliavimo galimybes (pvz., užklausas, įrašymą ar atnaujinimą).
+---
+
+## API specifikacija
+
+### Autentifikacija
+- JWT (access + refresh token'ai HTTP-only slapukuose)
+- Endpoint'ai:
+  - `POST /auth/signup` – registracija
+  - `POST /auth/login` – prisijungimas
+  - `POST /auth/logout` – atsijungimas
+  - `POST /auth/refresh` – token atnaujinimas
+  - `GET /auth/me` – dabartinis vartotojas
+
+### Šokių judesių valdymas (CRUD)
+- `GET /dance-moves` – sąrašas, paieška, filtrai
+- `POST /dance-moves` – naujas judesys (tik admin)
+- `GET/PUT/DELETE /dance-moves/{id}` – konkretus judesys
+
+### Choreografijos (šokių sekos)
+- `GET /dance-sequences` – visos sekos
+- `POST /dance-sequences` – nauja seka (prisijungęs)
+- `GET/PUT/DELETE /dance-sequences/{id}` – konkreti seka
+
+### Judesių priskyrimas sekoms
+- `GET /sequence-moves/{id}` – sekos judesiai
+- `PUT /sequence-moves/{id}` – pakeisti visus judesius
+- `DELETE /sequence-moves/{id}` – pašalinti visus judesius
+
+### Renginių valdymas
+- `GET /events` – visi renginiai
+- `POST /events` – naujas renginys (tik admin)
+- `GET/PUT/DELETE /events/{id}` – konkretus renginys
+
+### Klaidų valdymas
+- `200` / `201` – sėkminga
+- `400` – blogi duomenys
+- `401` – neautentifikuotas
+- `403` – nepakanka teisių
+- `404` – resursas nerastas
+
+---
+
+## Projekto išvados
+
+Groov projektas sėkmingai įgyvendintas kaip moderni full-stack šokių mokymosi platforma su:
+
+- Saugia autentifikacija (JWT)
+- Moduline architektūra
+- REST API su dokumentacija
+- Rolės pagrįstu prieigos valdymu
+- Docker ir Azure diegimu
+- TypeScript, dependency injection, testavimo praktikomis
+
+Projektas suteikė vertingos patirties dirbant su Node.js, React, PostgreSQL, Docker ir Azure debesų paslaugomis.
