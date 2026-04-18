@@ -228,7 +228,11 @@ export const EventDetail: React.FC = () => {
                   className={styles.sequenceCard}
                 >
                   <h3>{sequence.name}</h3>
-                  {sequence.description && <p>{sequence.description}</p>}
+                  {sequence.description && (
+                    <p className={styles.sequenceDescription}>
+                      {sequence.description}
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>

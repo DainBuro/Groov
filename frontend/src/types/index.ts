@@ -102,12 +102,14 @@ export interface DanceSequence {
   event_id: number | null;
   name: string;
   description: string | null;
+  youtube_url?: string | null;
 }
 
 export interface DanceSequenceFormData {
   name: string;
   description?: string;
   event_id?: number;
+  youtube_url?: string | null;
 }
 
 // Event types

@@ -92,6 +92,7 @@ export type DanceSequence = {
   event_id: number | null;
   name: string;
   description: string | null;
+  youtube_url: string | null;
 };
 
 export type Event = {

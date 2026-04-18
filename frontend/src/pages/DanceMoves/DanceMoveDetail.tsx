@@ -607,7 +607,9 @@ export const DanceMoveDetail: React.FC = () => {
                 >
                   <h3>{sequence.name}</h3>
                   {sequence.description && (
-                    <p className="text-muted">{sequence.description}</p>
+                    <p className={`text-muted ${styles.cardDescription}`}>
+                      {sequence.description}
+                    </p>
                   )}
                   {sequence.event && (
                     <div className={styles.meta}>

@@ -5,8 +5,9 @@ import {
   getSequenceMoves,
   replaceSequenceMoves,
   deleteSequence,
+  updateSequence,
 } from "../../api/sequenceApi";
-import { getEventById } from "../../api/eventApi";
+import { getAllEvents, getEventById } from "../../api/eventApi";
 import { getAllDanceMoves } from "../../api/danceMoveApi";
 import {
   DanceSequence,
@@ -31,6 +32,30 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 const positionsMatch = (a: KeyPositionEnum, b: KeyPositionEnum): boolean =>
   a === b || a === KeyPositionEnum.Any || b === KeyPositionEnum.Any;
 
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+  );
+  return match ? match[1] : null;
+}
+
+function extractStartTime(url: string): number | null {
+  const match = url.match(/[?&](?:t|start)=([^&]+)/);
+  if (!match) return null;
+  const raw = match[1];
+  if (/^\d+s?$/.test(raw)) return parseInt(raw, 10);
+  const hoursMatch = raw.match(/(\d+)h/);
+  const minutesMatch = raw.match(/(\d+)m/);
+  const secondsMatch = raw.match(/(\d+)s/);
+  if (hoursMatch || minutesMatch || secondsMatch) {
+    const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
+    const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
+    const seconds = secondsMatch ? parseInt(secondsMatch[1], 10) : 0;
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+  return null;
+}
+
 export const SequenceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,6 +63,7 @@ export const SequenceDetail: React.FC = () => {
 
   const [sequence, setSequence] = useState<DanceSequence | null>(null);
   const [event, setEvent] = useState<Event | null>(null);
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [sequenceMoves, setSequenceMoves] = useState<MoveOfSequence[]>([]);
   const [allMoves, setAllMoves] = useState<DanceMove[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +74,12 @@ export const SequenceDetail: React.FC = () => {
   const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+
+  // Edit form state for sequence-level fields.
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editEventId, setEditEventId] = useState<number | null>(null);
+  const [editYoutubeUrl, setEditYoutubeUrl] = useState("");
 
   const isOwner =
     isAuthenticated && user && sequence && user.id === sequence.user_id;
@@ -70,6 +102,9 @@ export const SequenceDetail: React.FC = () => {
 
         const allMovesData = await getAllDanceMoves();
         setAllMoves(allMovesData);
+
+        const eventsData = await getAllEvents();
+        setAllEvents(eventsData);
       } catch (err: any) {
         setError("Failed to load sequence details");
       } finally {
@@ -94,8 +129,12 @@ export const SequenceDetail: React.FC = () => {
   };
 
   const handleEditToggle = () => {
-    if (!isEditMode) {
+    if (!isEditMode && sequence) {
       setSelectedMoveIds(sequenceMoves.map((sm) => sm.move_id));
+      setEditName(sequence.name);
+      setEditDescription(sequence.description || "");
+      setEditEventId(sequence.event_id);
+      setEditYoutubeUrl(sequence.youtube_url || "");
     }
     setIsEditMode(!isEditMode);
   };
@@ -107,16 +146,35 @@ export const SequenceDetail: React.FC = () => {
 
   const handleSaveSequence = async () => {
     if (!sequence) return;
+    if (!editName.trim()) {
+      alert("Sequence name is required.");
+      return;
+    }
 
     try {
-      await replaceSequenceMoves(sequence.id, selectedMoveIds);
+      const updated = await updateSequence(sequence.id, {
+        name: editName.trim(),
+        description: editDescription.trim() || undefined,
+        event_id: editEventId ?? undefined,
+        youtube_url: editYoutubeUrl.trim() || null,
+      });
+      setSequence(updated);
 
+      if (updated.event_id) {
+        const eventData = await getEventById(updated.event_id);
+        setEvent(eventData);
+      } else {
+        setEvent(null);
+      }
+
+      await replaceSequenceMoves(sequence.id, selectedMoveIds);
       const movesData = await getSequenceMoves(sequence.id);
       setSequenceMoves(movesData);
+
       setIsEditMode(false);
       setMoveSearchTerm("");
     } catch (err: any) {
-      alert("Failed to update sequence moves");
+      alert("Failed to update sequence");
     }
   };
 
@@ -212,7 +270,7 @@ export const SequenceDetail: React.FC = () => {
           {isOwner && (
             <div className={styles.actions}>
               <Button variant="primary" onClick={handleEditToggle}>
-                {isEditMode ? "Cancel Edit" : "Edit Moves"}
+                {isEditMode ? "Cancel Edit" : "Edit"}
               </Button>
               <Button
                 variant="danger"
@@ -224,33 +282,112 @@ export const SequenceDetail: React.FC = () => {
           )}
         </div>
 
-        <div className={styles.detailInfo}>
-          {sequence.description && (
-            <div className={styles.infoRow}>
-              <p>{sequence.description}</p>
-            </div>
-          )}
-          {sequence.creator_username && (
-            <div className={styles.infoRow}>
-              <span className={styles.icon}>
-                <FontAwesomeIcon icon={faUser} />
-              </span>
-              <span>Created by {sequence.creator_username}</span>
-            </div>
-          )}
-          {event && (
-            <div className={styles.infoRow}>
-              <span className={styles.icon}>
-                <FontAwesomeIcon icon={faCalendar} />
-              </span>
-              <Link to={`/events/${event.id}`}>{event.name}</Link>
-            </div>
-          )}
-        </div>
+        {!isEditMode && (
+          <div className={styles.detailInfo}>
+            {sequence.description && (
+              <div className={styles.infoRow}>
+                <p>{sequence.description}</p>
+              </div>
+            )}
+            {sequence.creator_username && (
+              <div className={styles.infoRow}>
+                <span className={styles.icon}>
+                  <FontAwesomeIcon icon={faUser} />
+                </span>
+                <span>Created by {sequence.creator_username}</span>
+              </div>
+            )}
+            {event && (
+              <div className={styles.infoRow}>
+                <span className={styles.icon}>
+                  <FontAwesomeIcon icon={faCalendar} />
+                </span>
+                <Link to={`/events/${event.id}`}>{event.name}</Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {!isEditMode &&
+          sequence.youtube_url &&
+          (() => {
+            const videoId = extractYouTubeId(sequence.youtube_url);
+            if (!videoId) return null;
+            const startTime = extractStartTime(sequence.youtube_url);
+            const embedSrc = `https://www.youtube.com/embed/${videoId}${
+              startTime ? `?start=${startTime}` : ""
+            }`;
+            return (
+              <div className={styles.videoWrapper}>
+                <iframe
+                  src={embedSrc}
+                  title={sequence.name}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            );
+          })()}
 
         {isEditMode && (
           <div className={styles.editMode}>
-            <h3>Edit Sequence Moves</h3>
+            <h3>Edit Sequence</h3>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="seqName">Sequence Name *</label>
+              <input
+                id="seqName"
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="seqDescription">Description</label>
+              <textarea
+                id="seqDescription"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="seqEvent">Event (optional)</label>
+              <select
+                id="seqEvent"
+                value={editEventId ?? ""}
+                onChange={(e) =>
+                  setEditEventId(
+                    e.target.value ? parseInt(e.target.value) : null,
+                  )
+                }
+              >
+                <option value="">No event</option>
+                {allEvents.map((ev) => (
+                  <option key={ev.id} value={ev.id}>
+                    {ev.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="seqYoutubeUrl">
+                YouTube Video URL (optional)
+              </label>
+              <input
+                id="seqYoutubeUrl"
+                type="url"
+                value={editYoutubeUrl}
+                onChange={(e) => setEditYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
+
+            <h3>Sequence Moves</h3>
             <p className="text-muted mb-4">
               Select moves below to add them to your sequence. Use the arrows to
               reorder.
@@ -366,11 +503,6 @@ export const SequenceDetail: React.FC = () => {
             {sequenceMoves.length === 0 ? (
               <div className={styles.emptyState}>
                 <p>No moves in this sequence yet.</p>
-                {isOwner && (
-                  <p className="text-muted">
-                    Click "Edit Moves" to add moves to your sequence.
-                  </p>
-                )}
               </div>
             ) : (
               <ul className={styles.movesList}>
