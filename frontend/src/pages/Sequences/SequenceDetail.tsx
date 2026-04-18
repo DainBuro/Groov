@@ -8,7 +8,13 @@ import {
 } from "../../api/sequenceApi";
 import { getEventById } from "../../api/eventApi";
 import { getAllDanceMoves } from "../../api/danceMoveApi";
-import { DanceSequence, Event, MoveOfSequence, DanceMove } from "../../types";
+import {
+  DanceSequence,
+  Event,
+  MoveOfSequence,
+  DanceMove,
+  KeyPositionEnum,
+} from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
 import { formatPosition } from "../../utils/format";
@@ -20,6 +26,10 @@ import {
   faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 import ConfirmModal from "../../components/common/ConfirmModal";
+
+// Two positions are compatible if they match, or if either side is "any".
+const positionsMatch = (a: KeyPositionEnum, b: KeyPositionEnum): boolean =>
+  a === b || a === KeyPositionEnum.Any || b === KeyPositionEnum.Any;
 
 export const SequenceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -179,7 +189,7 @@ export const SequenceDetail: React.FC = () => {
   };
 
   const filteredMoves = allMoves.filter((move) =>
-    move.name.toLowerCase().includes(moveSearchTerm.toLowerCase())
+    move.name.toLowerCase().includes(moveSearchTerm.toLowerCase()),
   );
 
   if (isLoading) return <div className="container">Loading...</div>;
@@ -260,10 +270,16 @@ export const SequenceDetail: React.FC = () => {
                     if (!move) return null;
                     const prevMove =
                       index > 0
-                        ? allMoves.find((m) => m.id === selectedMoveIds[index - 1])
+                        ? allMoves.find(
+                            (m) => m.id === selectedMoveIds[index - 1],
+                          )
                         : null;
                     const mismatch =
-                      prevMove && prevMove.end_position !== move.start_position;
+                      prevMove &&
+                      !positionsMatch(
+                        prevMove.end_position,
+                        move.start_position,
+                      );
                     const showLineBefore = dropIndex === index;
                     const showLineAfter =
                       index === selectedMoveIds.length - 1 &&
@@ -280,50 +296,50 @@ export const SequenceDetail: React.FC = () => {
                           onDragOver={(e) => handleDragOver(e, index)}
                           onDragEnd={handleDragEnd}
                         >
-                        <div className={styles.moveNumber}>{index + 1}</div>
-                        <div className={styles.moveInfo}>
-                          <h5>{move.name}</h5>
-                          <p className="text-muted">
-                            {move.difficulty} |{" "}
-                            {formatPosition(move.start_position)} →{" "}
-                            {formatPosition(move.end_position)}
-                          </p>
-                          {mismatch && (
-                            <p className={styles.positionWarning}>
-                              <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
-                              Position mismatch: previous move ends in{" "}
-                              {formatPosition(prevMove!.end_position)}
+                          <div className={styles.moveNumber}>{index + 1}</div>
+                          <div className={styles.moveInfo}>
+                            <h5>{move.name}</h5>
+                            <p className="text-muted">
+                              {move.difficulty} |{" "}
+                              {formatPosition(move.start_position)} →{" "}
+                              {formatPosition(move.end_position)}
                             </p>
-                          )}
-                        </div>
-                        <div className={styles.moveControls}>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveUp(index)}
-                            disabled={index === 0}
-                            className={styles.controlButton}
-                            title="Move up"
-                          >
-                            ↑
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveDown(index)}
-                            disabled={index === selectedMoveIds.length - 1}
-                            className={styles.controlButton}
-                            title="Move down"
-                          >
-                            ↓
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMove(index)}
-                            className={`${styles.controlButton} ${styles.removeButton}`}
-                            title="Remove"
-                          >
-                            ✕
-                          </button>
-                        </div>
+                            {mismatch && (
+                              <p className={styles.positionWarning}>
+                                <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
+                                Position mismatch: previous move ends in{" "}
+                                {formatPosition(prevMove!.end_position)}
+                              </p>
+                            )}
+                          </div>
+                          <div className={styles.moveControls}>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveUp(index)}
+                              disabled={index === 0}
+                              className={styles.controlButton}
+                              title="Move up"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveDown(index)}
+                              disabled={index === selectedMoveIds.length - 1}
+                              className={styles.controlButton}
+                              title="Move down"
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveMove(index)}
+                              className={`${styles.controlButton} ${styles.removeButton}`}
+                              title="Remove"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </li>
                         {showLineAfter && <li className={styles.dropLine} />}
                       </React.Fragment>
@@ -363,13 +379,13 @@ export const SequenceDetail: React.FC = () => {
                   const prevMove =
                     index > 0
                       ? allMoves.find(
-                          (m) => m.id === sequenceMoves[index - 1].move_id
+                          (m) => m.id === sequenceMoves[index - 1].move_id,
                         )
                       : null;
                   const mismatch =
                     move &&
                     prevMove &&
-                    prevMove.end_position !== move.start_position;
+                    !positionsMatch(prevMove.end_position, move.start_position);
                   return (
                     <li key={seqMove.id} className={styles.moveItem}>
                       <Link
@@ -378,7 +394,9 @@ export const SequenceDetail: React.FC = () => {
                       >
                         <div className={styles.moveNumber}>{index + 1}</div>
                         <div className={styles.moveInfo}>
-                          <h4>{seqMove.name || move?.name || "Unknown Move"}</h4>
+                          <h4>
+                            {seqMove.name || move?.name || "Unknown Move"}
+                          </h4>
                           {move && (
                             <p>
                               {move.difficulty} |{" "}
@@ -423,7 +441,7 @@ export const SequenceDetail: React.FC = () => {
             <div className={styles.movesGrid}>
               {filteredMoves.map((move) => {
                 const countInSequence = selectedMoveIds.filter(
-                  (id) => id === move.id
+                  (id) => id === move.id,
                 ).length;
                 return (
                   <div

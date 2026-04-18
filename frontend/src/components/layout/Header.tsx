@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../common/Button";
 import styles from "./Header.module.scss";
@@ -9,11 +9,13 @@ import { faXmark, faBars } from "@fortawesome/free-solid-svg-icons";
 export const Header: React.FC = () => {
   const { isAuthenticated, logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
       setIsMobileMenuOpen(false);
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }

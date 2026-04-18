@@ -11,6 +11,32 @@ export const getAllDanceMoves = async (search?: string): Promise<DanceMove[]> =>
   return response.data;
 };
 
+export const getPendingDanceMoves = async (search?: string): Promise<DanceMove[]> => {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+
+  const response = await api.get<DanceMove[]>(`/${CONTROLLER_NAME}/pending?${params.toString()}`);
+  return response.data;
+};
+
+export const getMyDanceMoves = async (search?: string): Promise<DanceMove[]> => {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+
+  const response = await api.get<DanceMove[]>(`/${CONTROLLER_NAME}/my?${params.toString()}`);
+  return response.data;
+};
+
+export const approveDanceMove = async (id: number): Promise<DanceMove> => {
+  const response = await api.post<DanceMove>(`/${CONTROLLER_NAME}/${id}/approve`);
+  return response.data;
+};
+
+export const rejectDanceMove = async (id: number, reason?: string): Promise<DanceMove> => {
+  const response = await api.post<DanceMove>(`/${CONTROLLER_NAME}/${id}/reject`, { reason });
+  return response.data;
+};
+
 export const getDanceMoveById = async (id: number): Promise<DanceMove> => {
   const response = await api.get<DanceMove>(`/${CONTROLLER_NAME}/${id}`);
   return response.data;

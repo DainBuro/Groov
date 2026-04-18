@@ -15,6 +15,7 @@ export enum KeyPositionEnum {
   OpenLeftToLeft = "openLeftToLeft",
   OpenRightToLeft = "openRightToLeft",
   Sweethearts = "sweethearts",
+  Any = "any",
 }
 
 export enum PoseStatusEnum {
@@ -27,6 +28,12 @@ export enum PoseStatusEnum {
 export enum RoleType {
   Admin = "admin",
   User = "user",
+}
+
+export enum SubmissionStatusEnum {
+  Pending = "pending",
+  Approved = "approved",
+  Rejected = "rejected",
 }
 
 export enum Table {
@@ -74,6 +81,9 @@ export type DanceMove = {
   pose_status: PoseStatusEnum | null;
   pose_error: string | null;
   youtube_url: string | null;
+  submission_status: SubmissionStatusEnum;
+  created_by: number | null;
+  rejection_reason: string | null;
 };
 
 export type DanceSequence = {

@@ -13,6 +13,7 @@ export enum KeyPositionEnum {
   OpenLeftToLeft = "openLeftToLeft",
   OpenRightToLeft = "openRightToLeft",
   Sweethearts = "sweethearts",
+  Any = "any",
 }
 
 export enum RoleType {
@@ -44,6 +45,12 @@ export enum PoseStatusEnum {
   Failed = "failed",
 }
 
+export enum SubmissionStatusEnum {
+  Pending = "pending",
+  Approved = "approved",
+  Rejected = "rejected",
+}
+
 export interface DanceMove {
   id: number;
   name: string;
@@ -58,6 +65,10 @@ export interface DanceMove {
   pose_error?: string | null;
   has_pose_data?: boolean;
   youtube_url?: string | null;
+  submission_status?: SubmissionStatusEnum;
+  created_by?: number | null;
+  creator_username?: string | null;
+  rejection_reason?: string | null;
 }
 
 // Pose data types (MediaPipe output)

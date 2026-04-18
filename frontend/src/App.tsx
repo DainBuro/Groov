@@ -8,6 +8,8 @@ import { Login } from './pages/Auth/Login';
 import { Signup } from './pages/Auth/Signup';
 import { DanceMovesList } from './pages/DanceMoves/DanceMovesList';
 import { DanceMoveDetail } from './pages/DanceMoves/DanceMoveDetail';
+import { PendingSubmissions } from './pages/DanceMoves/PendingSubmissions';
+import { MySubmissions } from './pages/DanceMoves/MySubmissions';
 import { SequencesList } from './pages/Sequences/SequencesList';
 import { SequenceDetail } from './pages/Sequences/SequenceDetail';
 import { EventsList } from './pages/Events/EventsList';
@@ -27,6 +29,22 @@ function App() {
 
             {/* Dance moves */}
             <Route path="/moves" element={<DanceMovesList />} />
+            <Route
+              path="/moves/mine"
+              element={
+                <ProtectedRoute>
+                  <MySubmissions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/moves/pending"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <PendingSubmissions />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/moves/:id" element={<DanceMoveDetail />} />
 
             {/* Sequences (anyone can browse these) */}

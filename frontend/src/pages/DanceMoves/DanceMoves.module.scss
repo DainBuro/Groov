@@ -21,6 +21,76 @@
   }
 }
 
+.headerActions {
+  display: flex;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.hint {
+  background: rgba($primary, 0.08);
+  border-left: 3px solid $primary;
+  padding: $spacing-3 $spacing-4;
+  border-radius: $radius-sm;
+  color: $gray-700;
+  font-size: $font-size-sm;
+  margin: 0 0 $spacing-4 0;
+  line-height: 1.5;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-2;
+  margin-bottom: $spacing-3;
+
+  h3 {
+    margin: 0;
+    color: $primary;
+  }
+}
+
+.statusBadge {
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.statusPending {
+  background-color: rgba(#f59e0b, 0.15);
+  color: #b45309;
+}
+
+.statusApproved {
+  background-color: rgba(#10b981, 0.15);
+  color: #047857;
+}
+
+.statusRejected {
+  background-color: rgba(#ef4444, 0.15);
+  color: #b91c1c;
+}
+
+.statusBanner {
+  padding: $spacing-3 $spacing-4;
+  margin-bottom: $spacing-4;
+  border-left: 3px solid;
+  &.pending { border-color: #f59e0b; }
+  &.rejected { border-color: #ef4444; }
+}
+
+.moderationActions {
+  display: flex;
+  gap: $spacing-3;
+  flex-wrap: wrap;
+  margin-top: $spacing-3;
+}
+
 .filters {
   margin-bottom: $spacing-6;
 }
@@ -108,15 +178,22 @@
   @include hover-lift;
   text-decoration: none;
   color: inherit;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 
   h3 {
     color: $primary;
     margin-bottom: $spacing-3;
   }
+}
 
-  p {
-    margin-bottom: $spacing-4;
-  }
+.cardDescription {
+  margin: 0 0 $spacing-4 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .meta {
@@ -126,6 +203,7 @@
   font-size: $font-size-sm;
   color: $gray-600;
   gap: $spacing-2;
+  margin-top: auto;
 }
 
 .icon {
