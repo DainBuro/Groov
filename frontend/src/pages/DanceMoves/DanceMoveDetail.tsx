@@ -5,6 +5,7 @@ import {
   updateDanceMove,
   deleteDanceMove,
   getAllDanceMoves,
+  getChildMoves,
 } from "../../api/danceMoveApi";
 import { getAllSequences, getSequenceMoves } from "../../api/sequenceApi";
 import { getAllEvents } from "../../api/eventApi";
@@ -20,6 +21,7 @@ import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
 import { MotionViewer } from "../../components/PoseViewer/MotionViewer";
 import { PoseUpload } from "../../components/PoseUpload/PoseUpload";
+import { formatPosition } from "../../utils/format";
 import styles from "./DanceMoves.module.scss";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -29,6 +31,30 @@ interface SequenceWithEvent extends DanceSequence {
   event?: Event | null;
 }
 
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match ? match[1] : null;
+}
+
+function extractStartTime(url: string): number | null {
+  const match = url.match(/[?&](?:t|start)=([^&]+)/);
+  if (!match) return null;
+  const raw = match[1];
+  if (/^\d+s?$/.test(raw)) return parseInt(raw, 10);
+  const hoursMatch = raw.match(/(\d+)h/);
+  const minutesMatch = raw.match(/(\d+)m/);
+  const secondsMatch = raw.match(/(\d+)s/);
+  if (hoursMatch || minutesMatch || secondsMatch) {
+    const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
+    const minutes = minutesMatch ? parseInt(minutesMatch[1], 10) : 0;
+    const seconds = secondsMatch ? parseInt(secondsMatch[1], 10) : 0;
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+  return null;
+}
+
 export const DanceMoveDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -36,6 +62,7 @@ export const DanceMoveDetail: React.FC = () => {
 
   const [move, setMove] = useState<DanceMove | null>(null);
   const [parentMove, setParentMove] = useState<DanceMove | null>(null);
+  const [childMoves, setChildMoves] = useState<DanceMove[]>([]);
   const [allMoves, setAllMoves] = useState<DanceMove[]>([]);
   const [relatedSequences, setRelatedSequences] = useState<SequenceWithEvent[]>(
     []
@@ -66,6 +93,12 @@ export const DanceMoveDetail: React.FC = () => {
     const fetchMoveData = async () => {
       if (!id) return;
 
+      setIsLoading(true);
+      setMove(null);
+      setParentMove(null);
+      setChildMoves([]);
+      setRelatedSequences([]);
+
       try {
         const moveData = await getDanceMoveById(parseInt(id));
         setMove(moveData);
@@ -73,7 +106,12 @@ export const DanceMoveDetail: React.FC = () => {
         if (moveData.parent_move_id) {
           const parentData = await getDanceMoveById(moveData.parent_move_id);
           setParentMove(parentData);
+        } else {
+          setParentMove(null);
         }
+
+        const children = await getChildMoves(moveData.id);
+        setChildMoves(children);
 
         const allMovesData = await getAllDanceMoves();
         setAllMoves(allMovesData);
@@ -294,7 +332,7 @@ export const DanceMoveDetail: React.FC = () => {
                 >
                   {Object.values(KeyPositionEnum).map((pos) => (
                     <option key={pos} value={pos}>
-                      {pos}
+                      {formatPosition(pos)}
                     </option>
                   ))}
                 </select>
@@ -312,7 +350,7 @@ export const DanceMoveDetail: React.FC = () => {
                 >
                   {Object.values(KeyPositionEnum).map((pos) => (
                     <option key={pos} value={pos}>
-                      {pos}
+                      {formatPosition(pos)}
                     </option>
                   ))}
                 </select>
@@ -385,9 +423,13 @@ export const DanceMoveDetail: React.FC = () => {
             <div className={styles.infoSection}>
               <h3>Position Flow</h3>
               <p className={styles.positionFlow}>
-                <span className={styles.position}>{move.start_position}</span>
+                <span className={styles.position}>
+                  {formatPosition(move.start_position)}
+                </span>
                 <span className={styles.arrow}>→</span>
-                <span className={styles.position}>{move.end_position}</span>
+                <span className={styles.position}>
+                  {formatPosition(move.end_position)}
+                </span>
               </p>
             </div>
 
@@ -402,6 +444,53 @@ export const DanceMoveDetail: React.FC = () => {
                 </Link>
               </div>
             )}
+          </div>
+        )}
+
+        {childMoves.length > 0 && !isEditMode && (
+          <div className={styles.variationsSection}>
+            <h2>Variations</h2>
+            <div className={styles.variationsRow}>
+              {childMoves.map((child) => {
+                const videoId = child.youtube_url
+                  ? extractYouTubeId(child.youtube_url)
+                  : null;
+                const startTime = child.youtube_url
+                  ? extractStartTime(child.youtube_url)
+                  : null;
+                const embedSrc = videoId
+                  ? `https://www.youtube.com/embed/${videoId}${startTime ? `?start=${startTime}` : ""}`
+                  : "";
+                return (
+                  <Link
+                    to={`/moves/${child.id}`}
+                    key={child.id}
+                    className={styles.variationCard}
+                  >
+                    <h3>{child.name}</h3>
+                    <p className={styles.variationFlow}>
+                      <span className={styles.position}>
+                        {formatPosition(child.start_position)}
+                      </span>
+                      <span className={styles.arrow}>→</span>
+                      <span className={styles.position}>
+                        {formatPosition(child.end_position)}
+                      </span>
+                    </p>
+                    {videoId && (
+                      <div className={styles.variationVideo}>
+                        <iframe
+                          src={embedSrc}
+                          title={child.name}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
 

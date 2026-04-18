@@ -302,15 +302,11 @@ export const PoseViewer: React.FC<PoseViewerProps> = ({ poseData }) => {
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    // Controls — limit rotation to avoid exposing 2D flatness
     const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableRotate = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
     controls.target.set(0, 0, 0);
-    controls.minAzimuthAngle = -Math.PI / 4;
-    controls.maxAzimuthAngle = Math.PI / 4;
-    controls.minPolarAngle = Math.PI / 6;
-    controls.maxPolarAngle = Math.PI * 5 / 6;
 
     // Grid
     const grid = new THREE.GridHelper(4, 20, 0x444466, 0x333355);
