@@ -4,6 +4,7 @@ import { getAllDanceMoves, createDanceMove } from "../../api/danceMoveApi";
 import { DanceMove, DifficultyEnum, KeyPositionEnum } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
+import { formatPosition } from "../../utils/format";
 import styles from "./DanceMoves.module.scss";
 
 export const DanceMovesList: React.FC = () => {
@@ -17,13 +18,14 @@ export const DanceMovesList: React.FC = () => {
   const [newMoveName, setNewMoveName] = useState("");
   const [newMoveDescription, setNewMoveDescription] = useState("");
   const [newMoveDifficulty, setNewMoveDifficulty] = useState<DifficultyEnum>(
-    DifficultyEnum.Easy
+    DifficultyEnum.Easy,
   );
   const [newMoveStartPosition, setNewMoveStartPosition] =
     useState<KeyPositionEnum>(KeyPositionEnum.Closed);
   const [newMoveEndPosition, setNewMoveEndPosition] = useState<KeyPositionEnum>(
-    KeyPositionEnum.Closed
+    KeyPositionEnum.Closed,
   );
+  const [newMoveParentId, setNewMoveParentId] = useState<string>("");
 
   const loadMoves = async () => {
     try {
@@ -63,6 +65,7 @@ export const DanceMovesList: React.FC = () => {
         difficulty: newMoveDifficulty,
         start_position: newMoveStartPosition,
         end_position: newMoveEndPosition,
+        parent_move_id: newMoveParentId ? Number(newMoveParentId) : undefined,
       });
       navigate(`/moves/${newMove.id}`);
     } catch (err: any) {
@@ -151,20 +154,11 @@ export const DanceMovesList: React.FC = () => {
                 }
                 required
               >
-                <option value={KeyPositionEnum.Closed}>Closed</option>
-                <option value={KeyPositionEnum.OpenLeftToRight}>
-                  Open Left to Right
-                </option>
-                <option value={KeyPositionEnum.OpenRightToRight}>
-                  Open Right to Right
-                </option>
-                <option value={KeyPositionEnum.OpenLeftToLeft}>
-                  Open Left to Left
-                </option>
-                <option value={KeyPositionEnum.OpenRightToLeft}>
-                  Open Right to Left
-                </option>
-                <option value={KeyPositionEnum.Sweethearts}>Sweethearts</option>
+                {Object.values(KeyPositionEnum).map((pos) => (
+                  <option key={pos} value={pos}>
+                    {formatPosition(pos)}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formGroup}>
@@ -177,20 +171,26 @@ export const DanceMovesList: React.FC = () => {
                 }
                 required
               >
-                <option value={KeyPositionEnum.Closed}>Closed</option>
-                <option value={KeyPositionEnum.OpenLeftToRight}>
-                  Open Left to Right
-                </option>
-                <option value={KeyPositionEnum.OpenRightToRight}>
-                  Open Right to Right
-                </option>
-                <option value={KeyPositionEnum.OpenLeftToLeft}>
-                  Open Left to Left
-                </option>
-                <option value={KeyPositionEnum.OpenRightToLeft}>
-                  Open Right to Left
-                </option>
-                <option value={KeyPositionEnum.Sweethearts}>Sweethearts</option>
+                {Object.values(KeyPositionEnum).map((pos) => (
+                  <option key={pos} value={pos}>
+                    {formatPosition(pos)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="parentMove">Parent Move</label>
+              <select
+                id="parentMove"
+                value={newMoveParentId}
+                onChange={(e) => setNewMoveParentId(e.target.value)}
+              >
+                <option value="">None</option>
+                {moves.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.formActions}>
@@ -218,11 +218,9 @@ export const DanceMovesList: React.FC = () => {
             </p>
             <div className={styles.meta}>
               <span className={styles.badge}>{move.difficulty}</span>
-              {move.has_pose_data && (
-                <span className={styles.badge} style={{ background: '#6366f1', color: '#fff' }}>3D</span>
-              )}
               <span>
-                {move.start_position} → {move.end_position}
+                {formatPosition(move.start_position)} →{" "}
+                {formatPosition(move.end_position)}
               </span>
             </div>
           </Link>

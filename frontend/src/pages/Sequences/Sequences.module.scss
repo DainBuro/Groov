@@ -319,6 +319,29 @@
   align-items: center;
   gap: $spacing-4;
   background-color: $white;
+  cursor: grab;
+  transition: transform $transition-base, box-shadow $transition-base,
+    opacity $transition-base;
+
+  // Keep the grab cursor over text/number children; buttons below keep their own cursor.
+  .moveNumber,
+  .moveInfo,
+  .moveInfo * {
+    cursor: inherit;
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &.dragging {
+    opacity: 0.75;
+  }
+
+  &.dragOver {
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.25);
+  }
 
   .moveNumber {
     flex-shrink: 0;
@@ -347,6 +370,40 @@
       margin: 0;
       font-size: $font-size-sm;
     }
+  }
+}
+
+.dropLine {
+  list-style: none;
+  height: 3px;
+  background: $primary;
+  border-radius: $radius-full;
+  margin: $spacing-3 0;
+  pointer-events: none;
+}
+
+.positionWarning {
+  margin-top: $spacing-2 !important;
+  color: $warning !important;
+  font-size: $font-size-sm !important;
+  font-weight: $font-weight-medium;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.positionWarningSubtle {
+  margin-top: $spacing-1 !important;
+  color: $gray-500 !important;
+  font-size: $font-size-xs !important;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+
+  svg {
+    color: $warning;
+    opacity: 0.8;
   }
 }
 
