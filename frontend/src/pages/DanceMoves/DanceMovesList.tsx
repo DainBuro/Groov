@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllDanceMoves, createDanceMove } from "../../api/danceMoveApi";
-import { DanceMove, DifficultyEnum, KeyPositionEnum } from "../../types";
+import {
+  DanceMove,
+  DifficultyEnum,
+  KeyPositionEnum,
+  SubmissionStatusEnum,
+} from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
 import { formatPosition } from "../../utils/format";
@@ -9,7 +14,7 @@ import styles from "./DanceMoves.module.scss";
 
 export const DanceMovesList: React.FC = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, user } = useAuth();
   const [moves, setMoves] = useState<DanceMove[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,11 +26,12 @@ export const DanceMovesList: React.FC = () => {
     DifficultyEnum.Easy,
   );
   const [newMoveStartPosition, setNewMoveStartPosition] =
-    useState<KeyPositionEnum>(KeyPositionEnum.Closed);
+    useState<KeyPositionEnum>(KeyPositionEnum.Any);
   const [newMoveEndPosition, setNewMoveEndPosition] = useState<KeyPositionEnum>(
-    KeyPositionEnum.Closed,
+    KeyPositionEnum.Any,
   );
   const [newMoveParentId, setNewMoveParentId] = useState<string>("");
+  const [newMoveYoutubeUrl, setNewMoveYoutubeUrl] = useState("");
 
   const loadMoves = async () => {
     try {
@@ -66,7 +72,13 @@ export const DanceMovesList: React.FC = () => {
         start_position: newMoveStartPosition,
         end_position: newMoveEndPosition,
         parent_move_id: newMoveParentId ? Number(newMoveParentId) : undefined,
+        youtube_url: newMoveYoutubeUrl.trim() || null,
       });
+      if (!isAdmin) {
+        alert(
+          "Your move has been submitted and is awaiting admin approval. You'll find it in 'My Submissions'.",
+        );
+      }
       navigate(`/moves/${newMove.id}`);
     } catch (err: any) {
       alert("Failed to create dance move");
@@ -75,6 +87,24 @@ export const DanceMovesList: React.FC = () => {
 
   if (isLoading) return <div className="container">Loading...</div>;
   if (error) return <div className="container">{error}</div>;
+
+  const renderStatusBadge = (move: DanceMove) => {
+    if (
+      !move.submission_status ||
+      move.submission_status === SubmissionStatusEnum.Approved
+    ) {
+      return null;
+    }
+    const label =
+      move.submission_status === SubmissionStatusEnum.Pending
+        ? "Pending review"
+        : "Rejected";
+    const cls =
+      move.submission_status === SubmissionStatusEnum.Pending
+        ? styles.statusPending
+        : styles.statusRejected;
+    return <span className={`${styles.statusBadge} ${cls}`}>{label}</span>;
+  };
 
   return (
     <div className="container">
@@ -85,11 +115,27 @@ export const DanceMovesList: React.FC = () => {
             Explore our library of Lindy Hop dance moves
           </p>
         </div>
-        {isAdmin && (
-          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-            {showCreateForm ? "Cancel" : "Create Move"}
-          </Button>
-        )}
+        <div className={styles.headerActions}>
+          {isAuthenticated && !isAdmin && (
+            <Link to="/moves/mine">
+              <Button variant="outline">My Submissions</Button>
+            </Link>
+          )}
+          {isAdmin && (
+            <Link to="/moves/pending">
+              <Button variant="outline">Pending Submissions</Button>
+            </Link>
+          )}
+          {isAuthenticated && (
+            <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+              {showCreateForm
+                ? "Cancel"
+                : isAdmin
+                  ? "Create Move"
+                  : "Submit Move"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Search */}
@@ -105,7 +151,15 @@ export const DanceMovesList: React.FC = () => {
 
       {showCreateForm && (
         <div className={styles.createForm}>
-          <h3>Create New Dance Move</h3>
+          <h3>
+            {isAdmin ? "Create New Dance Move" : "Submit a New Dance Move"}
+          </h3>
+          {!isAdmin && (
+            <p className={styles.hint}>
+              Submissions are reviewed by an admin before they become visible to
+              everyone else.
+            </p>
+          )}
           <form onSubmit={handleCreateMove}>
             <div className={styles.formGroup}>
               <label htmlFor="name">Move Name *</label>
@@ -193,9 +247,19 @@ export const DanceMovesList: React.FC = () => {
                 ))}
               </select>
             </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="youtubeUrl">YouTube Video URL</label>
+              <input
+                id="youtubeUrl"
+                type="url"
+                value={newMoveYoutubeUrl}
+                onChange={(e) => setNewMoveYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
             <div className={styles.formActions}>
               <Button type="submit" variant="primary">
-                Create
+                {isAdmin ? "Create" : "Submit for review"}
               </Button>
               <Button
                 type="button"
@@ -210,21 +274,34 @@ export const DanceMovesList: React.FC = () => {
       )}
 
       <div className={styles.grid}>
-        {moves.map((move) => (
-          <Link to={`/moves/${move.id}`} key={move.id} className={styles.card}>
-            <h3>{move.name}</h3>
-            <p className="text-muted">
-              {move.description || "No description available"}
-            </p>
-            <div className={styles.meta}>
-              <span className={styles.badge}>{move.difficulty}</span>
-              <span>
-                {formatPosition(move.start_position)} →{" "}
-                {formatPosition(move.end_position)}
-              </span>
-            </div>
-          </Link>
-        ))}
+        {moves.map((move) => {
+          const isOwnSubmission =
+            move.created_by != null && user?.id === move.created_by;
+          return (
+            <Link
+              to={`/moves/${move.id}`}
+              key={move.id}
+              className={styles.card}
+            >
+              <div className={styles.cardHeader}>
+                <h3>{move.name}</h3>
+                {isOwnSubmission && renderStatusBadge(move)}
+              </div>
+              {move.description && (
+                <p className={`text-muted ${styles.cardDescription}`}>
+                  {move.description}
+                </p>
+              )}
+              <div className={styles.meta}>
+                <span className={styles.badge}>{move.difficulty}</span>
+                <span>
+                  {formatPosition(move.start_position)} →{" "}
+                  {formatPosition(move.end_position)}
+                </span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

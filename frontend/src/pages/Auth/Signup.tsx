@@ -32,7 +32,7 @@ export const Signup: React.FC = () => {
 
     try {
       await signup({ username, password });
-      navigate('/');
+      navigate('/moves');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Signup failed. Username may already be taken.');
     } finally {

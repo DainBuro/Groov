@@ -6,6 +6,8 @@ import {
   deleteDanceMove,
   getAllDanceMoves,
   getChildMoves,
+  approveDanceMove,
+  rejectDanceMove,
 } from "../../api/danceMoveApi";
 import { getAllSequences, getSequenceMoves } from "../../api/sequenceApi";
 import { getAllEvents } from "../../api/eventApi";
@@ -16,6 +18,7 @@ import {
   DifficultyEnum,
   KeyPositionEnum,
   PoseStatusEnum,
+  SubmissionStatusEnum,
 } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
@@ -33,7 +36,7 @@ interface SequenceWithEvent extends DanceSequence {
 
 function extractYouTubeId(url: string): string | null {
   const match = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
   );
   return match ? match[1] : null;
 }
@@ -58,14 +61,14 @@ function extractStartTime(url: string): number | null {
 export const DanceMoveDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
 
   const [move, setMove] = useState<DanceMove | null>(null);
   const [parentMove, setParentMove] = useState<DanceMove | null>(null);
   const [childMoves, setChildMoves] = useState<DanceMove[]>([]);
   const [allMoves, setAllMoves] = useState<DanceMove[]>([]);
   const [relatedSequences, setRelatedSequences] = useState<SequenceWithEvent[]>(
-    []
+    [],
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -76,16 +79,16 @@ export const DanceMoveDetail: React.FC = () => {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editDifficulty, setEditDifficulty] = useState<DifficultyEnum>(
-    DifficultyEnum.Easy
+    DifficultyEnum.Easy,
   );
   const [editStartPosition, setEditStartPosition] = useState<KeyPositionEnum>(
-    KeyPositionEnum.Closed
+    KeyPositionEnum.Any,
   );
   const [editEndPosition, setEditEndPosition] = useState<KeyPositionEnum>(
-    KeyPositionEnum.Closed
+    KeyPositionEnum.Any,
   );
   const [editParentMoveId, setEditParentMoveId] = useState<number | undefined>(
-    undefined
+    undefined,
   );
   const [editYoutubeUrl, setEditYoutubeUrl] = useState("");
 
@@ -125,7 +128,7 @@ export const DanceMoveDetail: React.FC = () => {
               sequence: seq,
               hasMove: moves.some((m) => m.move_id === parseInt(id)),
             };
-          })
+          }),
         );
 
         const filteredSequences = sequencesWithMoves
@@ -139,7 +142,7 @@ export const DanceMoveDetail: React.FC = () => {
             event: seq.event_id
               ? events.find((e) => e.id === seq.event_id) || null
               : null,
-          })
+          }),
         );
 
         setRelatedSequences(sequencesWithEvents);
@@ -155,13 +158,21 @@ export const DanceMoveDetail: React.FC = () => {
 
   // Keep checking for pose updates until it's done or failed.
   useEffect(() => {
-    if (!move || (move.pose_status !== PoseStatusEnum.Processing && move.pose_status !== PoseStatusEnum.Queued)) return;
+    if (
+      !move ||
+      (move.pose_status !== PoseStatusEnum.Processing &&
+        move.pose_status !== PoseStatusEnum.Queued)
+    )
+      return;
 
     const interval = setInterval(async () => {
       try {
         const updated = await getDanceMoveById(move.id);
         setMove(updated);
-        if (updated.pose_status !== PoseStatusEnum.Processing && updated.pose_status !== PoseStatusEnum.Queued) {
+        if (
+          updated.pose_status !== PoseStatusEnum.Processing &&
+          updated.pose_status !== PoseStatusEnum.Queued
+        ) {
           clearInterval(interval);
         }
       } catch {
@@ -227,9 +238,47 @@ export const DanceMoveDetail: React.FC = () => {
     }
   };
 
+  const handleApprove = async () => {
+    if (!move) return;
+    try {
+      const updated = await approveDanceMove(move.id);
+      setMove(updated);
+    } catch {
+      alert("Failed to approve dance move.");
+    }
+  };
+
+  const handleReject = async () => {
+    if (!move) return;
+    const reason = window.prompt(
+      "Optional: why is this submission being rejected? (the submitter will see this)",
+      move.rejection_reason || "",
+    );
+    if (reason === null) return;
+    try {
+      const updated = await rejectDanceMove(
+        move.id,
+        reason.trim() || undefined,
+      );
+      setMove(updated);
+    } catch {
+      alert("Failed to reject dance move.");
+    }
+  };
+
   if (isLoading) return <div className="container">Loading...</div>;
   if (error) return <div className="container">{error}</div>;
   if (!move) return <div className="container">Dance move not found</div>;
+
+  const status = move.submission_status || SubmissionStatusEnum.Approved;
+  const isOwner = user != null && move.created_by === user.id;
+  const canEdit =
+    isAdmin || (isOwner && status !== SubmissionStatusEnum.Approved);
+  const canDelete = canEdit;
+  const showPendingBanner =
+    status === SubmissionStatusEnum.Pending && (isAdmin || isOwner);
+  const showRejectedBanner =
+    status === SubmissionStatusEnum.Rejected && (isAdmin || isOwner);
 
   return (
     <div className="container">
@@ -241,30 +290,80 @@ export const DanceMoveDetail: React.FC = () => {
         message={`Are you sure you want to delete move "${move?.name}"? This action cannot be undone.`}
       />
       <div className={styles.detailContainer}>
+        {showPendingBanner && (
+          <div className={`${styles.statusBanner} ${styles.pending}`}>
+            <h4>Pending admin approval</h4>
+            <p>
+              {isAdmin
+                ? "This move is waiting for review. Approve it to publish, or reject it with feedback."
+                : "Your submission is waiting for an admin to review it. Only you and admins can see it until it's approved."}
+            </p>
+            {isAdmin && !isEditMode && (
+              <div className={styles.moderationActions}>
+                <Button variant="primary" onClick={handleApprove}>
+                  Approve
+                </Button>
+                <Button variant="danger" onClick={handleReject}>
+                  Reject
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {showRejectedBanner && (
+          <div className={`${styles.statusBanner} ${styles.rejected}`}>
+            <h4>Submission rejected</h4>
+            {move.rejection_reason ? (
+              <p>
+                <strong>Reason:</strong> {move.rejection_reason}
+              </p>
+            ) : (
+              <p>No reason was provided.</p>
+            )}
+            {isOwner && !isAdmin && (
+              <p>
+                Edit the move and resubmit — it will go back into the review
+                queue.
+              </p>
+            )}
+            {isAdmin && !isEditMode && (
+              <div className={styles.moderationActions}>
+                <Button variant="primary" onClick={handleApprove}>
+                  Approve anyway
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className={styles.detailHeader}>
           <div>
             <h1>{move.name}</h1>
             <span className={styles.badge}>{move.difficulty}</span>
           </div>
 
-          {isAdmin && !isEditMode && (
+          {!isEditMode && (canEdit || canDelete) && (
             <div className={styles.actions}>
-              <Button variant="primary" onClick={handleEditToggle}>
-                Edit Move
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => setIsOpenDeleteModal(true)}
-              >
-                Delete Move
-              </Button>
+              {canEdit && (
+                <Button variant="primary" onClick={handleEditToggle}>
+                  Edit Move
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="danger"
+                  onClick={() => setIsOpenDeleteModal(true)}
+                >
+                  Delete Move
+                </Button>
+              )}
             </div>
           )}
         </div>
 
         {(move.pose_data || move.youtube_url) && !isEditMode && (
           <div className={styles.infoSection}>
-            <h3>Motion</h3>
             <MotionViewer
               poseData={move.pose_data || null}
               youtubeUrl={move.youtube_url || null}
@@ -363,7 +462,7 @@ export const DanceMoveDetail: React.FC = () => {
                   value={editParentMoveId || ""}
                   onChange={(e) =>
                     setEditParentMoveId(
-                      e.target.value ? parseInt(e.target.value) : undefined
+                      e.target.value ? parseInt(e.target.value) : undefined,
                     )
                   }
                 >
@@ -389,13 +488,15 @@ export const DanceMoveDetail: React.FC = () => {
                 />
               </div>
 
-              <PoseUpload
-                moveId={move.id}
-                currentFileName={move.pose_file_name || null}
-                poseStatus={move.pose_status || null}
-                poseError={move.pose_error || null}
-                onUploadComplete={(updated) => setMove(updated)}
-              />
+              {isAdmin && (
+                <PoseUpload
+                  moveId={move.id}
+                  currentFileName={move.pose_file_name || null}
+                  poseStatus={move.pose_status || null}
+                  poseError={move.pose_error || null}
+                  onUploadComplete={(updated) => setMove(updated)}
+                />
+              )}
 
               <div className={styles.formActions}>
                 <Button type="submit" variant="primary">

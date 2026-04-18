@@ -1,11 +1,14 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
 import styles from "./Home.module.scss";
 
 export const Home: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) return null;
+  if (isAuthenticated) return <Navigate to="/moves" replace />;
 
   return (
     <div className="container">
@@ -15,29 +18,16 @@ export const Home: React.FC = () => {
           Your platform for learning and creating Lindy Hop dance sequences
         </p>
 
-        {!isAuthenticated ? (
-          <div className={styles.actions}>
-            <Link to="/signup">
-              <Button size="lg">Get Started</Button>
-            </Link>
-            <Link to="/moves">
-              <Button variant="outline" size="lg">
-                Browse Moves
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className={styles.actions}>
-            <Link to="/moves">
-              <Button size="lg">Explore Dance Moves</Button>
-            </Link>
-            <Link to="/sequences">
-              <Button variant="secondary" size="lg">
-                My Sequences
-              </Button>
-            </Link>
-          </div>
-        )}
+        <div className={styles.actions}>
+          <Link to="/signup">
+            <Button size="lg">Get Started</Button>
+          </Link>
+          <Link to="/moves">
+            <Button variant="outline" size="lg">
+              Browse Moves
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className={styles.features}>
