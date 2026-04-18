@@ -38,7 +38,9 @@
       "Bash(docker tag:*)",
       "Bash(docker push:*)",
       "Bash(openssl rand:*)",
-      "Bash(timeout 10 az container logs:*)"
+      "Bash(timeout 10 az container logs:*)",
+      "Bash(xargs wc *)",
+      "Bash(awk -F. '{print $NF}')"
     ],
     "deny": [],
     "ask": []

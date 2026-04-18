@@ -1,0 +1,106 @@
+@import '../../styles/variables';
+
+.uploadSection {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  padding: $spacing-4;
+  background: $gray-50;
+  border-radius: $radius-lg;
+  border: 1px solid $gray-200;
+}
+
+.label {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  color: $gray-700;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2 $spacing-3;
+  background: $white;
+  border-radius: $radius-md;
+  border: 1px solid $gray-200;
+  font-size: $font-size-sm;
+  color: $gray-600;
+}
+
+.fileName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeButton {
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-md;
+  border: 1px solid $error;
+  background: transparent;
+  color: $error;
+  font-size: $font-size-xs;
+  cursor: pointer;
+  transition: all $transition-fast $transition-ease;
+
+  &:hover {
+    background: $error;
+    color: $white;
+  }
+}
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+}
+
+.fileInput {
+  font-size: $font-size-sm;
+  color: $gray-600;
+}
+
+.uploadButton {
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-md;
+  border: none;
+  background: $primary;
+  color: $white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  cursor: pointer;
+  transition: background $transition-fast $transition-ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: $primary-dark;
+  }
+
+  &:disabled {
+    background: $gray-300;
+    cursor: not-allowed;
+  }
+}
+
+.numPosesSelect {
+  padding: $spacing-2;
+  border-radius: $radius-md;
+  border: 1px solid $gray-300;
+  font-size: $font-size-sm;
+  color: $gray-700;
+  background: $white;
+  cursor: pointer;
+}
+
+.status {
+  color: $primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.error {
+  color: $error;
+  font-size: $font-size-sm;
+}

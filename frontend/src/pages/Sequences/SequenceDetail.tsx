@@ -43,7 +43,6 @@ export const SequenceDetail: React.FC = () => {
         const sequenceData = await getSequenceById(parseInt(id));
         setSequence(sequenceData);
 
-        // Fetch event if sequence has event_id
         if (sequenceData.event_id) {
           const eventData = await getEventById(sequenceData.event_id);
           setEvent(eventData);
@@ -52,7 +51,6 @@ export const SequenceDetail: React.FC = () => {
         const movesData = await getSequenceMoves(parseInt(id));
         setSequenceMoves(movesData);
 
-        // Fetch all available moves for edit mode
         const allMovesData = await getAllDanceMoves();
         setAllMoves(allMovesData);
       } catch (err: any) {
@@ -80,14 +78,13 @@ export const SequenceDetail: React.FC = () => {
 
   const handleEditToggle = () => {
     if (!isEditMode) {
-      // Entering edit mode - populate selected moves
       setSelectedMoveIds(sequenceMoves.map((sm) => sm.move_id));
     }
     setIsEditMode(!isEditMode);
   };
 
   const handleMoveToggle = (moveId: number) => {
-    // Always add the move, allowing duplicates
+    // Duplicates are allowed on purpose - a sequence can repeat a move.
     setSelectedMoveIds((prev) => [...prev, moveId]);
   };
 
@@ -97,7 +94,6 @@ export const SequenceDetail: React.FC = () => {
     try {
       await replaceSequenceMoves(sequence.id, selectedMoveIds);
 
-      // Refresh sequence moves
       const movesData = await getSequenceMoves(sequence.id);
       setSequenceMoves(movesData);
       setIsEditMode(false);
@@ -137,7 +133,6 @@ export const SequenceDetail: React.FC = () => {
     setMoveSearchTerm("");
   };
 
-  // Filter available moves based on search term
   const filteredMoves = allMoves.filter((move) =>
     move.name.toLowerCase().includes(moveSearchTerm.toLowerCase())
   );

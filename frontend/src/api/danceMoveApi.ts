@@ -44,3 +44,19 @@ export const updateDanceMove = async (id: number, data: Partial<DanceMoveFormDat
 export const deleteDanceMove = async (id: number): Promise<void> => {
   await api.delete(`/${CONTROLLER_NAME}/${id}`);
 };
+
+export const uploadPoseVideo = async (id: number, file: File, numPoses: number = 1): Promise<DanceMove> => {
+  const formData = new FormData();
+  formData.append('video', file);
+  formData.append('numPoses', String(numPoses));
+  const response = await api.post<DanceMove>(`/${CONTROLLER_NAME}/${id}/pose`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 300000, // 5 min timeout for video processing
+  });
+  return response.data;
+};
+
+export const deletePoseData = async (id: number): Promise<DanceMove> => {
+  const response = await api.delete<DanceMove>(`/${CONTROLLER_NAME}/${id}/pose`);
+  return response.data;
+};

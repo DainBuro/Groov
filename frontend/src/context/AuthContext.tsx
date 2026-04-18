@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in from cookies
+    // Restore the session if the cookie is still valid.
     const checkAuth = async () => {
       try {
         const currentUser = await getCurrentUser();
@@ -42,7 +42,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginRequest) => {
     try {
       await loginApi(credentials);
-      // After successful login, get user info from backend
       const currentUser = await getCurrentUser();
       setUser(currentUser);
     } catch (error) {
@@ -53,7 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (credentials: SignupRequest) => {
     try {
       await signupApi(credentials);
-      // Automatically log in after signup
+      // Log them in right after signup.
       await login({
         username: credentials.username,
         password: credentials.password,

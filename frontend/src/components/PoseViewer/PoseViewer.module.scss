@@ -1,0 +1,116 @@
+@import '../../styles/variables';
+
+.viewerContainer {
+  width: 100%;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  background: $gray-900;
+  box-shadow: $shadow-lg;
+}
+
+.canvas {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-4;
+  background: $gray-800;
+  flex-wrap: wrap;
+}
+
+.playButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-full;
+  border: none;
+  background: $primary;
+  color: $white;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  transition: background $transition-fast $transition-ease;
+
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+.speedControls {
+  display: flex;
+  gap: $spacing-1;
+}
+
+.speedButton {
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-md;
+  border: 1px solid $gray-600;
+  background: transparent;
+  color: $gray-300;
+  font-size: $font-size-xs;
+  cursor: pointer;
+  transition: all $transition-fast $transition-ease;
+
+  &:hover {
+    border-color: $primary-light;
+    color: $white;
+  }
+
+  &.active {
+    background: $primary;
+    border-color: $primary;
+    color: $white;
+  }
+}
+
+.progressContainer {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.progressBar {
+  flex: 1;
+  height: 4px;
+  background: $gray-600;
+  border-radius: $radius-full;
+  cursor: pointer;
+  position: relative;
+
+  &:hover {
+    height: 6px;
+  }
+}
+
+.progressFill {
+  height: 100%;
+  background: $primary;
+  border-radius: $radius-full;
+  transition: width 0.05s linear;
+}
+
+.timeDisplay {
+  color: $gray-400;
+  font-size: $font-size-xs;
+  font-family: $font-family-mono;
+  white-space: nowrap;
+}
+
+.noWebGL {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  background: $gray-100;
+  color: $gray-500;
+  border-radius: $radius-xl;
+  font-size: $font-size-sm;
+}
