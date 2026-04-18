@@ -37,7 +37,13 @@ export interface LoginRequest {
   password: string;
 }
 
-// Dance Move types
+export enum PoseStatusEnum {
+  Queued = "queued",
+  Processing = "processing",
+  Ready = "ready",
+  Failed = "failed",
+}
+
 export interface DanceMove {
   id: number;
   name: string;
@@ -46,6 +52,25 @@ export interface DanceMove {
   start_position: KeyPositionEnum;
   end_position: KeyPositionEnum;
   parent_move_id: number | null;
+  pose_data?: string | null;
+  pose_file_name?: string | null;
+  pose_status?: PoseStatusEnum | null;
+  pose_error?: string | null;
+  has_pose_data?: boolean;
+  youtube_url?: string | null;
+}
+
+// Pose data types (MediaPipe output)
+export interface PoseLandmark {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface PoseData {
+  fps: number;
+  num_poses: number;
+  frames: PoseLandmark[][][]; // frames[frameIndex][poseIndex][landmarkIndex]
 }
 
 export interface DanceMoveFormData {
@@ -55,6 +80,7 @@ export interface DanceMoveFormData {
   start_position: KeyPositionEnum;
   end_position: KeyPositionEnum;
   parent_move_id?: number;
+  youtube_url?: string | null;
 }
 
 // Dance Sequence types

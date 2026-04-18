@@ -1,6 +1,6 @@
-import React, { ReactNode } from 'react';
-import { Header } from './Header';
-import styles from './Layout.module.scss';
+import React, { ReactNode } from "react";
+import { Header } from "./Header";
+import styles from "./Layout.module.scss";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,7 +12,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Header />
       <main className={styles.main}>{children}</main>
       <footer className={styles.footer}>
-        <p>&copy; 2025 Groov. All rights reserved.</p>
+        <p>&copy; 2026 Groov</p>
       </footer>
     </div>
   );

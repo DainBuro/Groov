@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { injectable } from 'inversify';
-import { AppUser, DanceMove, RefreshToken, Table } from '../schema';
+import { AppUser, DanceMove, PoseStatusEnum, RefreshToken, Table } from '../schema';
 import { BaseRepository } from './baseRepository';
 
 @injectable()
@@ -13,13 +13,21 @@ export class DanceMoveRepository extends BaseRepository {
     return move || null;
   }
 
-  async getAllDanceMoves(search?: string): Promise<DanceMove[]> {
-    return this.get<DanceMove>(Table.DanceMove, '*', (query) => {
-      if (search) {
-        query.where('name', 'ilike', `%${search}%`);
-      }
-      return query.orderBy('name', 'asc');
-    });
+  async getAllDanceMoves(search?: string): Promise<(Omit<DanceMove, 'pose_data'> & { has_pose_data: boolean })[]> {
+    const db = this.database.db();
+    let query = db(Table.DanceMove)
+      .select(
+        'id', 'name', 'description', 'difficulty',
+        'start_position', 'end_position', 'parent_move_id', 'pose_file_name',
+        'pose_status', 'pose_error', 'youtube_url',
+        db.raw('pose_data IS NOT NULL as has_pose_data')
+      );
+
+    if (search) {
+      query = query.where('name', 'ilike', `%${search}%`);
+    }
+
+    return query.orderBy('name', 'asc');
   }
 
   async getDanceMovesByDifficulty(difficulty: string): Promise<DanceMove[]> {
@@ -43,6 +51,22 @@ export class DanceMoveRepository extends BaseRepository {
 
   async getChildMoves(parentMoveId: number): Promise<DanceMove[]> {
     return this.get<DanceMove>(Table.DanceMove, '*', (query) => query.where('parent_move_id', parentMoveId));
+  }
+
+  async updatePoseData(id: number, poseData: string | null, fileName: string | null): Promise<DanceMove | null> {
+    const [updated] = await this.database.db()(Table.DanceMove)
+      .where('id', id)
+      .update({ pose_data: poseData, pose_file_name: fileName })
+      .returning('*');
+    return updated || null;
+  }
+
+  async updatePoseStatus(id: number, status: PoseStatusEnum | null, error: string | null): Promise<DanceMove | null> {
+    const [updated] = await this.database.db()(Table.DanceMove)
+      .where('id', id)
+      .update({ pose_status: status, pose_error: error })
+      .returning('*');
+    return updated || null;
   }
 
   async getParentMove(childMoveId: number): Promise<DanceMove | null> {

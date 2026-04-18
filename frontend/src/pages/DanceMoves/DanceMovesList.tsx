@@ -218,6 +218,9 @@ export const DanceMovesList: React.FC = () => {
             </p>
             <div className={styles.meta}>
               <span className={styles.badge}>{move.difficulty}</span>
+              {move.has_pose_data && (
+                <span className={styles.badge} style={{ background: '#6366f1', color: '#fff' }}>3D</span>
+              )}
               <span>
                 {move.start_position} → {move.end_position}
               </span>

@@ -14,9 +14,12 @@ import {
   Event,
   DifficultyEnum,
   KeyPositionEnum,
+  PoseStatusEnum,
 } from "../../types";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/common/Button";
+import { MotionViewer } from "../../components/PoseViewer/MotionViewer";
+import { PoseUpload } from "../../components/PoseUpload/PoseUpload";
 import styles from "./DanceMoves.module.scss";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -57,6 +60,7 @@ export const DanceMoveDetail: React.FC = () => {
   const [editParentMoveId, setEditParentMoveId] = useState<number | undefined>(
     undefined
   );
+  const [editYoutubeUrl, setEditYoutubeUrl] = useState("");
 
   useEffect(() => {
     const fetchMoveData = async () => {
@@ -66,17 +70,15 @@ export const DanceMoveDetail: React.FC = () => {
         const moveData = await getDanceMoveById(parseInt(id));
         setMove(moveData);
 
-        // Fetch parent move if exists
         if (moveData.parent_move_id) {
           const parentData = await getDanceMoveById(moveData.parent_move_id);
           setParentMove(parentData);
         }
 
-        // Fetch all moves for parent selection in edit mode
         const allMovesData = await getAllDanceMoves();
         setAllMoves(allMovesData);
 
-        // Fetch all sequences and filter those containing this move
+        // Find which sequences use this move.
         const allSequences = await getAllSequences();
         const sequencesWithMoves = await Promise.all(
           allSequences.map(async (seq) => {
@@ -92,7 +94,6 @@ export const DanceMoveDetail: React.FC = () => {
           .filter((item) => item.hasMove)
           .map((item) => item.sequence);
 
-        // Fetch events for sequences
         const events = await getAllEvents();
         const sequencesWithEvents: SequenceWithEvent[] = filteredSequences.map(
           (seq) => ({
@@ -114,15 +115,35 @@ export const DanceMoveDetail: React.FC = () => {
     fetchMoveData();
   }, [id]);
 
+  // Keep checking for pose updates until it's done or failed.
+  useEffect(() => {
+    if (!move || (move.pose_status !== PoseStatusEnum.Processing && move.pose_status !== PoseStatusEnum.Queued)) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const updated = await getDanceMoveById(move.id);
+        setMove(updated);
+        if (updated.pose_status !== PoseStatusEnum.Processing && updated.pose_status !== PoseStatusEnum.Queued) {
+          clearInterval(interval);
+        }
+      } catch {
+        // A failed poll is fine - just try again next tick.
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [move?.id, move?.pose_status]);
+
   const handleEditToggle = () => {
     if (!isEditMode && move) {
-      // Entering edit mode - populate form fields
+      // Prefill the form with the current values when opening the editor.
       setEditName(move.name);
       setEditDescription(move.description || "");
       setEditDifficulty(move.difficulty);
       setEditStartPosition(move.start_position);
       setEditEndPosition(move.end_position);
       setEditParentMoveId(move.parent_move_id || undefined);
+      setEditYoutubeUrl(move.youtube_url || "");
     }
     setIsEditMode(!isEditMode);
   };
@@ -138,12 +159,12 @@ export const DanceMoveDetail: React.FC = () => {
         start_position: editStartPosition,
         end_position: editEndPosition,
         parent_move_id: editParentMoveId,
+        youtube_url: editYoutubeUrl.trim() || null,
       });
 
       setMove(updatedMove);
       setIsEditMode(false);
 
-      // Refresh parent move if changed
       if (updatedMove.parent_move_id) {
         const parentData = await getDanceMoveById(updatedMove.parent_move_id);
         setParentMove(parentData);
@@ -202,6 +223,16 @@ export const DanceMoveDetail: React.FC = () => {
             </div>
           )}
         </div>
+
+        {(move.pose_data || move.youtube_url) && !isEditMode && (
+          <div className={styles.infoSection}>
+            <h3>Motion</h3>
+            <MotionViewer
+              poseData={move.pose_data || null}
+              youtubeUrl={move.youtube_url || null}
+            />
+          </div>
+        )}
 
         {isEditMode ? (
           <div className={styles.editMode}>
@@ -308,6 +339,25 @@ export const DanceMoveDetail: React.FC = () => {
                     ))}
                 </select>
               </div>
+
+              <div className={styles.formGroup}>
+                <label htmlFor="youtubeUrl">YouTube Video URL (Optional)</label>
+                <input
+                  id="youtubeUrl"
+                  type="url"
+                  value={editYoutubeUrl}
+                  onChange={(e) => setEditYoutubeUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
+              </div>
+
+              <PoseUpload
+                moveId={move.id}
+                currentFileName={move.pose_file_name || null}
+                poseStatus={move.pose_status || null}
+                poseError={move.pose_error || null}
+                onUploadComplete={(updated) => setMove(updated)}
+              />
 
               <div className={styles.formActions}>
                 <Button type="submit" variant="primary">
