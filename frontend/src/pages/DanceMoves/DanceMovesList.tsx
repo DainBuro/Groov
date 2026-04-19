@@ -20,6 +20,7 @@ export const DanceMovesList: React.FC = () => {
   const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [hideVariations, setHideVariations] = useState(true);
   const [newMoveName, setNewMoveName] = useState("");
   const [newMoveDescription, setNewMoveDescription] = useState("");
   const [newMoveDifficulty, setNewMoveDifficulty] = useState<DifficultyEnum>(
@@ -147,6 +148,14 @@ export const DanceMovesList: React.FC = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
         />
+        <label className={styles.filterCheckbox}>
+          <input
+            type="checkbox"
+            checked={hideVariations}
+            onChange={(e) => setHideVariations(e.target.checked)}
+          />
+          Hide variations
+        </label>
       </div>
 
       {showCreateForm && (
@@ -274,7 +283,9 @@ export const DanceMovesList: React.FC = () => {
       )}
 
       <div className={styles.grid}>
-        {moves.map((move) => {
+        {moves
+          .filter((m) => !hideVariations || m.parent_move_id == null)
+          .map((move) => {
           const isOwnSubmission =
             move.created_by != null && user?.id === move.created_by;
           return (
