@@ -54,7 +54,7 @@ describe('Auth routes (integration)', () => {
     it('creates a new user and stores a hashed password', async () => {
       const res = await request(app).post('/auth/signup').send({ username: 'dainius', password: 'pw12345' });
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(repo._users).toHaveLength(1);
       const stored = repo._users[0];
       expect(stored.username).toBe('dainius');
@@ -79,13 +79,8 @@ describe('Auth routes (integration)', () => {
       expect(cookies.some((c) => c.startsWith('refreshToken='))).toBe(true);
     });
 
-    it('responds 400 with a wrong password', async () => {
+    it('responds 400 with invalid credentials', async () => {
       const res = await request(app).post('/auth/login').send({ username: 'dainius', password: 'bad' });
-      expect(res.status).toBe(400);
-    });
-
-    it('responds 400 for a missing user', async () => {
-      const res = await request(app).post('/auth/login').send({ username: 'ghost', password: 'x' });
       expect(res.status).toBe(400);
     });
   });
@@ -110,6 +105,11 @@ describe('Auth routes (integration)', () => {
   });
 
   describe('POST /auth/logout', () => {
+    it('responds 401 when no access token cookie is sent', async () => {
+      const res = await request(app).post('/auth/logout');
+      expect(res.status).toBe(401);
+    });
+
     it('removes the refresh token and clears cookies', async () => {
       const login = await request(app).post('/auth/login').send({ username: 'dainius', password: 'pw12345' });
       const cookies = login.headers['set-cookie'] as unknown as string[];

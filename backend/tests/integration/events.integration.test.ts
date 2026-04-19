@@ -86,4 +86,31 @@ describe('Event routes (integration)', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('DELETE /events/:id', () => {
+    it('404 when the event does not exist', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      eventRepo.getEventById.mockResolvedValue(null);
+
+      const res = await request(app)
+        .delete('/events/99')
+        .set('Cookie', [`accessToken=${token}`]);
+
+      expect(res.status).toBe(404);
+    });
+
+    it('204 for admin with an existing event', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      eventRepo.getEventById.mockResolvedValue({ id: 1, name: 'Jam' });
+      eventRepo.deleteEvent.mockResolvedValue(1);
+
+      const res = await request(app)
+        .delete('/events/1')
+        .set('Cookie', [`accessToken=${token}`]);
+
+      expect(res.status).toBe(204);
+      expect(res.text).toBe('');
+      expect(eventRepo.deleteEvent).toHaveBeenCalledWith('1');
+    });
+  });
 });

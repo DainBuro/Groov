@@ -150,6 +150,38 @@ describe('Dance move routes (integration)', () => {
     });
   });
 
+  describe('DELETE /dance-moves/:id', () => {
+    it('401 without authentication', async () => {
+      const res = await request(app).delete('/dance-moves/1');
+      expect(res.status).toBe(401);
+    });
+
+    it('204 when a user deletes their own pending move', async () => {
+      const token = signAccessToken({ id: 10, role: RoleType.User });
+      moveRepo.getDanceMove.mockResolvedValue({ id: 1, created_by: 10, submission_status: SubmissionStatusEnum.Pending });
+      moveRepo.deleteDanceMove.mockResolvedValue(1);
+
+      const res = await request(app)
+        .delete('/dance-moves/1')
+        .set('Cookie', [`accessToken=${token}`]);
+
+      expect(res.status).toBe(204);
+      expect(res.text).toBe('');
+    });
+
+    it('403 when a non-admin tries to delete someone else\'s move', async () => {
+      const token = signAccessToken({ id: 10, role: RoleType.User });
+      moveRepo.getDanceMove.mockResolvedValue({ id: 1, created_by: 99, submission_status: SubmissionStatusEnum.Pending });
+
+      const res = await request(app)
+        .delete('/dance-moves/1')
+        .set('Cookie', [`accessToken=${token}`]);
+
+      expect(res.status).toBe(403);
+      expect(moveRepo.deleteDanceMove).not.toHaveBeenCalled();
+    });
+  });
+
   describe('POST /dance-moves/:id/approve', () => {
     it('admin approves a pending move', async () => {
       const token = signAccessToken({ id: 2, role: RoleType.Admin });

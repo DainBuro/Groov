@@ -155,8 +155,8 @@ export class DanceMoveController extends BaseHttpController {
         return this.badRequest('DanceMove id has to be a positive integer');
       }
       const { id: userId, role } = this.httpContext.user.details;
-      const deleted = await this.danceMoveService.deleteDanceMove(id, userId, role);
-      return this.ok(deleted);
+      await this.danceMoveService.deleteDanceMove(id, userId, role);
+      return this.statusCode(204);
     } catch (err: any) {
       if (err.message?.includes('not found')) {
         return this.notFound();
@@ -255,8 +255,8 @@ export class DanceMoveController extends BaseHttpController {
         return this.badRequest('DanceMove id has to be a positive integer');
       }
 
-      const updated = await this.danceMoveService.deletePoseData(id);
-      return this.ok(updated);
+      await this.danceMoveService.deletePoseData(id);
+      return this.statusCode(204);
     } catch (err: any) {
       if (err.message.includes('not found')) {
         return this.notFound();

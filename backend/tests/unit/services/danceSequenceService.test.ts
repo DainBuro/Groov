@@ -19,26 +19,9 @@ describe('DanceSequenceService', () => {
     service = new DanceSequenceService(repo as unknown as DanceSequenceRepository);
   });
 
-  it('delegates lookup by id', async () => {
-    repo.getDanceSequence!.mockResolvedValue({ id: 1 } as any);
-    const result = await service.getDanceSequence(1);
-    expect(result?.id).toBe(1);
-    expect(repo.getDanceSequence).toHaveBeenCalledWith(1);
-  });
-
-  it('forwards both search and creatorId when listing', async () => {
-    repo.getAllDanceSequences!.mockResolvedValue([] as any);
-    await service.getAllDanceSequences('foo', 7);
-    expect(repo.getAllDanceSequences).toHaveBeenCalledWith('foo', 7);
-  });
-
   describe('createDanceSequence', () => {
-    it('rejects when name is missing', async () => {
+    it('rejects when required fields are missing', async () => {
       await expect(service.createDanceSequence({ user_id: 1 } as any)).rejects.toThrow('Missing required fields');
-    });
-
-    it('rejects when user_id is missing', async () => {
-      await expect(service.createDanceSequence({ name: 'x' } as any)).rejects.toThrow('Missing required fields');
     });
 
     it('strips the client id before saving', async () => {

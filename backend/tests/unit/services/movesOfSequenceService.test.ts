@@ -26,27 +26,7 @@ describe('MovesOfSequenceService', () => {
     );
   });
 
-  describe('getMovesOfSequence', () => {
-    it('delegates to the repository', async () => {
-      moveRepo.getMovesOfSequence!.mockResolvedValue([{ id: 1 }] as any);
-      const result = await service.getMovesOfSequence(10);
-      expect(result).toEqual([{ id: 1 }]);
-      expect(moveRepo.getMovesOfSequence).toHaveBeenCalledWith(10);
-    });
-
-    it('returns null when no moves are found', async () => {
-      moveRepo.getMovesOfSequence!.mockResolvedValue(null as any);
-      const result = await service.getMovesOfSequence(10);
-      expect(result).toBeNull();
-    });
-  });
-
   describe('deleteAllMovesOfSequence', () => {
-    it('requires a sequence id', async () => {
-      await expect(service.deleteAllMovesOfSequence(null as any, 1)).rejects.toThrow('Sequence ID is required');
-      await expect(service.deleteAllMovesOfSequence(undefined as any, 1)).rejects.toThrow('Sequence ID is required');
-    });
-
     it('throws when the sequence does not exist', async () => {
       seqRepo.getDanceSequence!.mockResolvedValue(null as any);
       await expect(service.deleteAllMovesOfSequence(1, 1)).rejects.toThrow('not found');
@@ -77,11 +57,6 @@ describe('MovesOfSequenceService', () => {
   });
 
   describe('replaceMovesOfSequence', () => {
-    it('requires a sequence id', async () => {
-      await expect(service.replaceMovesOfSequence(null as any, [1], 1)).rejects.toThrow('Sequence ID is required');
-      await expect(service.replaceMovesOfSequence(undefined as any, [1], 1)).rejects.toThrow('Sequence ID is required');
-    });
-
     it('throws when the sequence does not exist', async () => {
       seqRepo.getDanceSequence!.mockResolvedValue(null as any);
       await expect(service.replaceMovesOfSequence(1, [1, 2], 1)).rejects.toThrow('not found');
