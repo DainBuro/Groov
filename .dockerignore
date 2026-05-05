@@ -52,6 +52,10 @@ logs
 *.log
 startup-logs.zip
 
-# Heavy ML model weights
+# Heavy ML model weights (the backend image downloads them at build time)
 *.pt
 *.task
+
+# Frontend source — built by its own Dockerfile with context=./frontend.
+# Excluded here so it doesn't bloat the backend build context.
+frontend

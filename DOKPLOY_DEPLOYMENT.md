@@ -82,14 +82,17 @@ Watch the logs in the Dokploy UI. The first build takes a few minutes.
 - Migrations run automatically on every backend start via `docker-entrypoint.sh` → `npm run migrate:prod`.
 - Seeding is **disabled** in production. To seed once, set `RUN_SEED=true` on the backend service for one deploy, then remove it.
 
-## 7. Optional: pose extraction (YOLOv8)
+## 7. Pose extraction (YOLOv8)
 
-The backend exposes a pose-extraction job that shells out to `python tools/extract_pose.py`. The default `node:18-alpine` image **does not include Python**, so this feature will fail until you either:
+The backend exposes a pose-extraction job that shells out to `python tools/extract_pose.py`. `backend/Dockerfile` already takes care of the heavy lifting:
 
-- Extend `backend/Dockerfile` to install Python + `tools/requirements.txt` + the YOLO model weights, or
-- Run that worker as a separate service.
+- Installs Python 3 and the OpenCV native libs (`libgl1`, `libglib2.0-0`) on top of the Node runtime.
+- Installs CPU-only PyTorch and the deps from `tools/requirements.txt` into a `/opt/venv` virtualenv that's first on `PATH`.
+- Pre-downloads `yolov8m-pose.pt` (~50 MB) into `/app` at build time so the first user upload doesn't pay the download cost.
 
-The rest of the application (auth, dance moves, sequences, ratings, events) works without it.
+Trade-off: the production image ends up around **1.5–2 GB** because of PyTorch + ultralytics. The build also reaches out to PyPI and the ultralytics CDN, so the build host needs internet egress. If you ever want to slim the API container, move pose extraction to a dedicated worker service that uses this same Dockerfile.
+
+The build context for the backend is the **repo root** (so `tools/` is reachable). That's already wired up in `docker-compose.yml` and `docker-compose.dokploy.yml`.
 
 ## 8. Local development
 
