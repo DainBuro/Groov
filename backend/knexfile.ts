@@ -6,8 +6,9 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const getConnectionConfig = () => {
-  // Force SSL in production, or use DB_SSL env var for other environments
-  const useSSL = process.env.NODE_ENV === 'production' || process.env.DB_SSL === 'true';
+  // SSL is opt-in via DB_SSL=true (e.g. cloud-hosted Postgres). On the internal
+  // Docker network DB_SSL stays false — the Postgres image doesn't ship with SSL.
+  const useSSL = process.env.DB_SSL === 'true';
 
   console.log('Database connection config:', {
     host: process.env.DB_HOST,
@@ -19,7 +20,7 @@ const getConnectionConfig = () => {
 
   const config: any = {
     host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
+    port: Number(process.env.DB_PORT || 5432),
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
@@ -28,8 +29,6 @@ const getConnectionConfig = () => {
   if (useSSL) {
     config.ssl = { rejectUnauthorized: false };
   }
-
-  console.log('Final connection config with SSL:', JSON.stringify(config, null, 2));
 
   return config;
 };
@@ -45,7 +44,7 @@ const config: { [key: string]: Knex.Config } = {
   },
   production: {
     client: 'pg',
-    connection: `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT || 5432}/${process.env.DB_NAME}?sslmode=require`,
+    connection: getConnectionConfig(),
     migrations: {
       tableName: 'knex_migrations',
       directory: './migrations'
