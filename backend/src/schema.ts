@@ -41,6 +41,7 @@ export enum Table {
   DanceMove = "dance_move",
   DanceSequence = "dance_sequence",
   Event = "event",
+  FavoriteMove = "favorite_move",
   KnexMigrations = "knex_migrations",
   KnexMigrationsLock = "knex_migrations_lock",
   MoveOfSequence = "move_of_sequence",
@@ -53,6 +54,7 @@ export type Tables = {
   "dance_move": DanceMove,
   "dance_sequence": DanceSequence,
   "event": Event,
+  "favorite_move": FavoriteMove,
   "knex_migrations": KnexMigrations,
   "knex_migrations_lock": KnexMigrationsLock,
   "move_of_sequence": MoveOfSequence,
@@ -100,6 +102,12 @@ export type Event = {
   name: string;
   location: string | null;
   date: Date | null;
+};
+
+export type FavoriteMove = {
+  user_id: number;
+  move_id: number;
+  created_at: Date;
 };
 
 export type KnexMigrations = {

@@ -11,6 +11,8 @@ import { DanceSequenceService } from '../services/danceSequenceService';
 import { DanceSequenceRepository } from '../repositories/danceSequenceRepository';
 import { EventService } from '../services/eventService';
 import { EventRepository } from '../repositories/eventRepository';
+import { FavoriteMoveService } from '../services/favoriteMoveService';
+import { FavoriteMoveRepository } from '../repositories/favoriteMoveRepository';
 
 const createIocContainer = () => {
   const container = new Container();
@@ -28,6 +30,11 @@ const createIocContainer = () => {
     .inSingletonScope();
   container.bind<EventService>(TYPES.eventService).to(EventService).inSingletonScope();
   container.bind<EventRepository>(TYPES.eventRepository).to(EventRepository).inSingletonScope();
+  container.bind<FavoriteMoveService>(TYPES.favoriteMoveService).to(FavoriteMoveService).inSingletonScope();
+  container
+    .bind<FavoriteMoveRepository>(TYPES.favoriteMoveRepository)
+    .to(FavoriteMoveRepository)
+    .inSingletonScope();
   container.bind<Database>(TYPES.database).to(Database).inSingletonScope();
 
   return container;

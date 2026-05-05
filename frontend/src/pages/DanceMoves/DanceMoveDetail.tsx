@@ -12,6 +12,11 @@ import {
 import { getAllSequences, getSequenceMoves } from "../../api/sequenceApi";
 import { getAllEvents } from "../../api/eventApi";
 import {
+  addFavoriteMove,
+  getFavoriteMoveIds,
+  removeFavoriteMove,
+} from "../../api/favoriteApi";
+import {
   DanceMove,
   DanceSequence,
   Event,
@@ -61,7 +66,7 @@ function extractStartTime(url: string): number | null {
 export const DanceMoveDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, isAuthenticated, user } = useAuth();
 
   const [move, setMove] = useState<DanceMove | null>(null);
   const [parentMove, setParentMove] = useState<DanceMove | null>(null);
@@ -74,6 +79,7 @@ export const DanceMoveDetail: React.FC = () => {
   const [error, setError] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
   const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   // Edit form state
   const [editName, setEditName] = useState("");
@@ -155,6 +161,32 @@ export const DanceMoveDetail: React.FC = () => {
 
     fetchMoveData();
   }, [id]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !id) {
+      setIsFavorite(false);
+      return;
+    }
+    const moveId = parseInt(id);
+    getFavoriteMoveIds()
+      .then((ids) => setIsFavorite(ids.includes(moveId)))
+      .catch(() => setIsFavorite(false));
+  }, [isAuthenticated, id]);
+
+  const handleToggleFavorite = async () => {
+    if (!move) return;
+    const wasFavorite = isFavorite;
+    setIsFavorite(!wasFavorite);
+    try {
+      if (wasFavorite) {
+        await removeFavoriteMove(move.id);
+      } else {
+        await addFavoriteMove(move.id);
+      }
+    } catch {
+      setIsFavorite(wasFavorite);
+    }
+  };
 
   // Keep checking for pose updates until it's done or failed.
   useEffect(() => {
@@ -340,6 +372,21 @@ export const DanceMoveDetail: React.FC = () => {
         <div className={styles.detailHeader}>
           <div>
             <h1>{move.name}</h1>
+            {isAuthenticated && (
+              <button
+                type="button"
+                className={`${styles.favoriteButton} ${styles.favoriteButtonInline} ${
+                  isFavorite ? styles.favoriteButtonActive : ""
+                }`}
+                onClick={handleToggleFavorite}
+                aria-label={
+                  isFavorite ? "Remove from favorites" : "Add to favorites"
+                }
+                aria-pressed={isFavorite}
+              >
+                {isFavorite ? "★" : "☆"}
+              </button>
+            )}
             <span className={styles.badge}>{move.difficulty}</span>
           </div>
 

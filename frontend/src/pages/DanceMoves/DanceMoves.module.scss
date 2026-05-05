@@ -52,6 +52,78 @@
   }
 }
 
+.cardHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  flex-shrink: 0;
+}
+
+.favoriteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-full;
+  background: rgba($white, 0.9);
+  border: 1px solid $gray-200;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  font-size: $font-size-lg;
+  line-height: 1;
+  color: $gray-400;
+  cursor: pointer;
+  transition: color $transition-base, background-color $transition-base,
+    border-color $transition-base, opacity $transition-base;
+  user-select: none;
+
+  // Hidden by default on the card; revealed on card hover/focus.
+  // Starred items stay visible (handled by .favoriteButtonActive).
+  @media (hover: hover) {
+    opacity: 0;
+
+    .card:hover &,
+    .card:focus-within & {
+      opacity: 1;
+    }
+  }
+
+  &:hover {
+    color: #f59e0b;
+    background: rgba(#f59e0b, 0.12);
+    border-color: rgba(#f59e0b, 0.4);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+.favoriteButtonActive {
+  color: #f59e0b;
+  // Always visible once starred, even without hover.
+  @media (hover: hover) {
+    opacity: 1;
+  }
+}
+
+// Variant used outside cards (e.g. detail page) — always visible, no bubble bg.
+.favoriteButtonInline {
+  width: auto;
+  height: auto;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-size: $font-size-2xl;
+
+  @media (hover: hover) {
+    opacity: 1;
+  }
+}
+
 .statusBadge {
   padding: $spacing-1 $spacing-2;
   border-radius: $radius-full;
