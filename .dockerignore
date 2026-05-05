@@ -2,9 +2,7 @@
 node_modules
 npm-debug.log
 
-# Development files
-.git
-.gitignore
+# Env files (never bake into images — env comes from compose)
 .env
 .env.local
 .env.development
@@ -21,6 +19,7 @@ CLAUDE.md
 *.swp
 *.swo
 *~
+.claude
 
 # OS files
 .DS_Store
@@ -32,10 +31,14 @@ tests
 *.test.ts
 *.spec.ts
 
-# Build output (will be built in container)
+# Build output (built inside the image)
 dist
+backend/dist
+frontend/build
 
-# Docker files
+# Docker / git
+.git
+.gitignore
 docker-compose.yml
 Dockerfile
 .dockerignore
@@ -47,3 +50,8 @@ Dockerfile
 # Logs
 logs
 *.log
+startup-logs.zip
+
+# Heavy ML model weights
+*.pt
+*.task

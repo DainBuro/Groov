@@ -1,8 +1,9 @@
 import type { Knex } from 'knex';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
-// Load environment variables from .env file
-dotenv.config();
+// Single source of truth lives at the project root.
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const getConnectionConfig = () => {
   // Force SSL in production, or use DB_SSL env var for other environments
