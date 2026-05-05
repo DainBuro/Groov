@@ -1,5 +1,10 @@
 import 'reflect-metadata';
-import 'dotenv/config';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+// Single source of truth lives at the project root. dotenv silently no-ops if
+// the file isn't there (e.g. inside Docker, where env vars come from compose).
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 import './ioc/controllers';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -22,9 +27,14 @@ server.setConfig((app) => {
 
   app.use(bodyParser.json());
 
+  const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
   app.use(
     cors({
-      origin: ['http://localhost:3000'],
+      origin: corsOrigins,
       credentials: true
     })
   );

@@ -26,7 +26,7 @@ export class AuthController extends BaseHttpController {
       }
     }
 
-    return this.ok();
+    return this.created('/auth/signup', {});
   }
 
   @httpPost('/login')
@@ -57,7 +57,7 @@ export class AuthController extends BaseHttpController {
     return this.ok();
   }
 
-  @httpPost('/logout')
+  @httpPost('/logout', authService.authenticate([]))
   private async logout() {
     this.httpContext.response.clearCookie(Cookie.ACCESS_TOKEN, { httpOnly: true, secure: true, sameSite: 'strict' });
     this.httpContext.response.clearCookie(Cookie.REFRESH_TOKEN, { httpOnly: true, secure: true, sameSite: 'strict' });

@@ -235,7 +235,11 @@ All API calls go through service modules (`authService`, `danceMoveService`, etc
 
 ## Environment Variables
 
-### Backend Environment Variables (in `/backend/.env.example`)
+A single `.env` file at the project root is the source of truth for both services
+(see `.env.example`). The backend's `dotenv` loader resolves it from the project
+root; the frontend reads `REACT_APP_API_URL` at build time via the Docker build arg.
+
+### Backend Environment Variables
 
 **Server Configuration:**
 - `PORT` - Server port (default: 3003)
@@ -253,8 +257,9 @@ All API calls go through service modules (`authService`, `danceMoveService`, etc
 - `ACCESS_TOKEN_SECRET` - JWT access token secret
 - `REFRESH_TOKEN_SECRET` - JWT refresh token secret
 
-### Frontend Environment Variables (in `/frontend/.env.example`)
-- `REACT_APP_API_URL` - Backend API URL (default: http://localhost:3003)
+### Frontend Environment Variables
+- `REACT_APP_API_URL` - Backend API URL, baked at build time via the
+  `REACT_APP_API_URL` Docker build arg (default: `/api` for the bundled nginx proxy)
 
 ## Deployment
 

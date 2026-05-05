@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllDanceMoves, createDanceMove } from "../../api/danceMoveApi";
 import {
+  addFavoriteMove,
+  getFavoriteMoveIds,
+  removeFavoriteMove,
+} from "../../api/favoriteApi";
+import {
   DanceMove,
   DifficultyEnum,
   KeyPositionEnum,
@@ -20,6 +25,9 @@ export const DanceMovesList: React.FC = () => {
   const [error, setError] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [hideVariations, setHideVariations] = useState(true);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [newMoveName, setNewMoveName] = useState("");
   const [newMoveDescription, setNewMoveDescription] = useState("");
   const [newMoveDifficulty, setNewMoveDifficulty] = useState<DifficultyEnum>(
@@ -59,6 +67,40 @@ export const DanceMovesList: React.FC = () => {
       loadMoves();
     }
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setFavoriteIds(new Set());
+      setOnlyFavorites(false);
+      return;
+    }
+    getFavoriteMoveIds()
+      .then((ids) => setFavoriteIds(new Set(ids)))
+      .catch(() => setFavoriteIds(new Set()));
+  }, [isAuthenticated]);
+
+  const toggleFavorite = async (e: React.MouseEvent, moveId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const wasFavorite = favoriteIds.has(moveId);
+    const next = new Set(favoriteIds);
+    if (wasFavorite) {
+      next.delete(moveId);
+    } else {
+      next.add(moveId);
+    }
+    setFavoriteIds(next);
+    try {
+      if (wasFavorite) {
+        await removeFavoriteMove(moveId);
+      } else {
+        await addFavoriteMove(moveId);
+      }
+    } catch {
+      // Roll back optimistic update on failure.
+      setFavoriteIds(favoriteIds);
+    }
+  };
 
   const handleCreateMove = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,6 +189,24 @@ export const DanceMovesList: React.FC = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
         />
+        <label className={styles.filterCheckbox}>
+          <input
+            type="checkbox"
+            checked={hideVariations}
+            onChange={(e) => setHideVariations(e.target.checked)}
+          />
+          Hide variations
+        </label>
+        {isAuthenticated && (
+          <label className={styles.filterCheckbox}>
+            <input
+              type="checkbox"
+              checked={onlyFavorites}
+              onChange={(e) => setOnlyFavorites(e.target.checked)}
+            />
+            Only favorites
+          </label>
+        )}
       </div>
 
       {showCreateForm && (
@@ -274,34 +334,57 @@ export const DanceMovesList: React.FC = () => {
       )}
 
       <div className={styles.grid}>
-        {moves.map((move) => {
-          const isOwnSubmission =
-            move.created_by != null && user?.id === move.created_by;
-          return (
-            <Link
-              to={`/moves/${move.id}`}
-              key={move.id}
-              className={styles.card}
-            >
-              <div className={styles.cardHeader}>
-                <h3>{move.name}</h3>
-                {isOwnSubmission && renderStatusBadge(move)}
-              </div>
-              {move.description && (
-                <p className={`text-muted ${styles.cardDescription}`}>
-                  {move.description}
-                </p>
-              )}
-              <div className={styles.meta}>
-                <span className={styles.badge}>{move.difficulty}</span>
-                <span>
-                  {formatPosition(move.start_position)} →{" "}
-                  {formatPosition(move.end_position)}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+        {moves
+          .filter((m) => !hideVariations || m.parent_move_id == null)
+          .filter((m) => !onlyFavorites || favoriteIds.has(m.id))
+          .map((move) => {
+            const isOwnSubmission =
+              move.created_by != null && user?.id === move.created_by;
+            const isFavorite = favoriteIds.has(move.id);
+            return (
+              <Link
+                to={`/moves/${move.id}`}
+                key={move.id}
+                className={styles.card}
+              >
+                <div className={styles.cardHeader}>
+                  <h3>{move.name}</h3>
+                  <div className={styles.cardHeaderActions}>
+                    {isOwnSubmission && renderStatusBadge(move)}
+                    {isAuthenticated && (
+                      <button
+                        type="button"
+                        className={`${styles.favoriteButton} ${
+                          isFavorite ? styles.favoriteButtonActive : ""
+                        }`}
+                        onClick={(e) => toggleFavorite(e, move.id)}
+                        aria-label={
+                          isFavorite
+                            ? "Remove from favorites"
+                            : "Add to favorites"
+                        }
+                        aria-pressed={isFavorite}
+                      >
+                        {isFavorite ? "★" : "☆"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {move.description && (
+                  <p className={`text-muted ${styles.cardDescription}`}>
+                    {move.description}
+                  </p>
+                )}
+                <div className={styles.meta}>
+                  <span className={styles.badge}>{move.difficulty}</span>
+                  <span>
+                    {formatPosition(move.start_position)} →{" "}
+                    {formatPosition(move.end_position)}
+                  </span>
+                </div>
+              </Link>
+            );
+          })}
       </div>
     </div>
   );

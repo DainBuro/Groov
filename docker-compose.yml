@@ -1,49 +1,52 @@
-version: "3.9"
 services:
   db:
-    image: postgres:17
+    image: postgres:17-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: groov_db
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      POSTGRES_DB: ${POSTGRES_DB:-groov_db}
     ports:
-      - "5435:5432"
+      - "${DB_HOST_PORT:-5435}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d groov_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-groov_db}"]
       interval: 10s
       retries: 5
       timeout: 5s
 
   backend:
     build: ./backend
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
-      NODE_ENV: development
-      PORT: 3003
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${BACKEND_PORT:-3003}
       DB_HOST: db
-      DB_USER: admin
-      DB_PASSWORD: admin
       DB_PORT: 5432
-      DB_NAME: groov_db
-      DB_SSL: false
-      ACCESS_TOKEN_SECRET: TBbaJd9Yce7+2rLBGswhWxcwpLxX8b5CRDRYDgU3aS0=
-      REFRESH_TOKEN_SECRET: 97eHWGnSYDp55KMJPGrW9mrdRoVOkg3Ip4QxnrTzjbA=
+      DB_USER: ${POSTGRES_USER:-admin}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-admin}
+      DB_NAME: ${POSTGRES_DB:-groov_db}
+      DB_SSL: "false"
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
     ports:
-      - "3003:3003"
-    command: ["node", "dist/src/index.js"]
+      - "${BACKEND_PORT:-3003}:3003"
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-/api}
+    restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3003
+      - "${FRONTEND_PORT:-3000}:80"
 
 volumes:
   db-data:

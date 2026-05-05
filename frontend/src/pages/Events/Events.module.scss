@@ -207,15 +207,23 @@
   @include hover-lift;
   text-decoration: none;
   color: inherit;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 
   h3 {
     color: $primary;
     margin-bottom: $spacing-2;
     font-size: $font-size-lg;
   }
+}
 
-  p {
-    color: $gray-600;
-    font-size: $font-size-sm;
-  }
+.sequenceDescription {
+  margin: 0;
+  color: $gray-600;
+  font-size: $font-size-sm;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

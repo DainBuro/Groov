@@ -27,9 +27,9 @@ const upload = multer({
     filename: (req, file, cb) => {
       const ext = file.originalname.substring(file.originalname.lastIndexOf('.'));
       cb(null, `pose_video_${Date.now()}${ext}`);
-    },
+    }
   }),
-  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+  limits: { fileSize: 500 * 1024 * 1024 } // 500MB
 });
 
 const authService = iocContainer.get<AuthService>(TYPES.authService);
@@ -52,7 +52,7 @@ export class DanceMoveController extends BaseHttpController {
       status,
       mine: mine === 'true' || mine === '1',
       requesterId: requester?.id,
-      requesterRole: requester?.role,
+      requesterRole: requester?.role
     });
     return this.ok(moves);
   }
@@ -62,7 +62,7 @@ export class DanceMoveController extends BaseHttpController {
     const moves = await this.danceMoveService.getAllDanceMoves({
       search,
       status: SubmissionStatusEnum.Pending,
-      requesterRole: RoleType.Admin,
+      requesterRole: RoleType.Admin
     });
     return this.ok(moves);
   }
@@ -74,7 +74,7 @@ export class DanceMoveController extends BaseHttpController {
       search,
       mine: true,
       requesterId: requester.id,
-      requesterRole: requester.role,
+      requesterRole: requester.role
     });
     return this.ok(moves);
   }
@@ -155,8 +155,8 @@ export class DanceMoveController extends BaseHttpController {
         return this.badRequest('DanceMove id has to be a positive integer');
       }
       const { id: userId, role } = this.httpContext.user.details;
-      const deleted = await this.danceMoveService.deleteDanceMove(id, userId, role);
-      return this.ok(deleted);
+      await this.danceMoveService.deleteDanceMove(id, userId, role);
+      return this.statusCode(204);
     } catch (err: any) {
       if (err.message?.includes('not found')) {
         return this.notFound();
@@ -185,10 +185,7 @@ export class DanceMoveController extends BaseHttpController {
   }
 
   @httpPost('/:id/reject', authService.authenticate([RoleType.Admin]))
-  private async reject(
-    @requestParam('id') id: number,
-    @requestBody() body: { reason?: string }
-  ) {
+  private async reject(@requestParam('id') id: number, @requestBody() body: { reason?: string }) {
     try {
       if (id <= 0) {
         return this.badRequest('DanceMove id has to be a positive integer');
@@ -234,9 +231,7 @@ export class DanceMoveController extends BaseHttpController {
       }
 
       // Kick off the extraction in the background and return the move right away.
-      const updated = await this.danceMoveService.extractPoseFromVideo(
-        id, file.path, file.originalname, numPoses
-      );
+      const updated = await this.danceMoveService.extractPoseFromVideo(id, file.path, file.originalname, numPoses);
       return this.ok(updated);
     } catch (err: any) {
       if (file && fs.existsSync(file.path)) fs.unlinkSync(file.path);
@@ -255,8 +250,8 @@ export class DanceMoveController extends BaseHttpController {
         return this.badRequest('DanceMove id has to be a positive integer');
       }
 
-      const updated = await this.danceMoveService.deletePoseData(id);
-      return this.ok(updated);
+      await this.danceMoveService.deletePoseData(id);
+      return this.statusCode(204);
     } catch (err: any) {
       if (err.message.includes('not found')) {
         return this.notFound();

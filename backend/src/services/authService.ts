@@ -58,7 +58,7 @@ export class AuthService {
     const user = await this.authRepository.getUserByUsername(data.username);
 
     if (_.isEmpty(user)) {
-      throw new InvalidCredentials('No sure with such username', 400);
+      throw new InvalidCredentials('No user with such username', 400);
     }
 
     const match = await bcrypt.compare(data.password, user.password);
