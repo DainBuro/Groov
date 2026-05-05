@@ -80,6 +80,12 @@ export class MovesOfSequenceController extends BaseHttpController {
       );
       return this.ok(result);
     } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return this.notFound();
+      }
+      if (error.message?.includes('Unauthorized')) {
+        return this.json({ message: error.message }, 403);
+      }
       return this.badRequest(`Could not replace moves for sequence with id: ${sequenceId}`);
     }
   }
@@ -94,12 +100,18 @@ export class MovesOfSequenceController extends BaseHttpController {
       if (!sequence) {
         return this.notFound();
       }
-      const result = await this.movesOfSequenceService.deleteAllMovesOfSequence(
+      await this.movesOfSequenceService.deleteAllMovesOfSequence(
         sequenceId,
         this.httpContext.user.details.id
       );
-      return this.ok(result);
+      return this.statusCode(204);
     } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return this.notFound();
+      }
+      if (error.message?.includes('Unauthorized')) {
+        return this.json({ message: error.message }, 403);
+      }
       return this.badRequest(`Could not delete moves for sequence with id: ${sequenceId}`);
     }
   }

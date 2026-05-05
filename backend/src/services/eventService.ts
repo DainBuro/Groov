@@ -16,7 +16,7 @@ export class EventService {
   }
 
   async getEventById(id: number): Promise<Event | null> {
-    if (_.isEmpty(id)) {
+    if (id == null) {
       throw new Error('Event ID is required');
     }
     return this.eventRepository.getEventById(id);
@@ -32,14 +32,14 @@ export class EventService {
   }
 
   async updateEvent(id: number, event: Partial<Event>): Promise<Event[]> {
-    if (_.isEmpty(id)) {
+    if (id == null) {
       throw new Error('Event ID is required');
     }
     return this.eventRepository.updateEvent(id, event);
   }
 
   async deleteEvent(id: number): Promise<number> {
-    if (_.isEmpty(id)) {
+    if (id == null) {
       throw new Error('Event ID is required');
     }
     return this.eventRepository.deleteEvent(id);

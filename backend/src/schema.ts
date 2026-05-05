@@ -2,48 +2,64 @@
 // Do not touch them, or risk, your modifications being lost.
 
 export enum DifficultyEnum {
-  Easy = 'easy',
-  Medium = 'medium',
-  Hard = 'hard',
-  VeryHard = 'very_hard'
+  Easy = "easy",
+  Medium = "medium",
+  Hard = "hard",
+  VeryHard = "very_hard",
 }
 
 export enum KeyPositionEnum {
-  Closed = 'closed',
-  OpenLeftToRight = 'openLeftToRight',
-  OpenRightToRight = 'openRightToRight',
-  OpenLeftToLeft = 'openLeftToLeft',
-  OpenRightToLeft = 'openRightToLeft',
-  Sweethearts = 'sweethearts'
+  Closed = "closed",
+  OpenLeftToRight = "openLeftToRight",
+  OpenRightToRight = "openRightToRight",
+  OpenLeftToLeft = "openLeftToLeft",
+  OpenRightToLeft = "openRightToLeft",
+  Sweethearts = "sweethearts",
+  Any = "any",
+}
+
+export enum PoseStatusEnum {
+  Queued = "queued",
+  Processing = "processing",
+  Ready = "ready",
+  Failed = "failed",
 }
 
 export enum RoleType {
-  Admin = 'admin',
-  User = 'user'
+  Admin = "admin",
+  User = "user",
+}
+
+export enum SubmissionStatusEnum {
+  Pending = "pending",
+  Approved = "approved",
+  Rejected = "rejected",
 }
 
 export enum Table {
-  AppUser = 'app_user',
-  DanceMove = 'dance_move',
-  DanceSequence = 'dance_sequence',
-  Event = 'event',
-  KnexMigrations = 'knex_migrations',
-  KnexMigrationsLock = 'knex_migrations_lock',
-  MoveOfSequence = 'move_of_sequence',
-  Rating = 'rating',
-  RefreshToken = 'refresh_token'
+  AppUser = "app_user",
+  DanceMove = "dance_move",
+  DanceSequence = "dance_sequence",
+  Event = "event",
+  FavoriteMove = "favorite_move",
+  KnexMigrations = "knex_migrations",
+  KnexMigrationsLock = "knex_migrations_lock",
+  MoveOfSequence = "move_of_sequence",
+  Rating = "rating",
+  RefreshToken = "refresh_token",
 }
 
 export type Tables = {
-  app_user: AppUser;
-  dance_move: DanceMove;
-  dance_sequence: DanceSequence;
-  event: Event;
-  knex_migrations: KnexMigrations;
-  knex_migrations_lock: KnexMigrationsLock;
-  move_of_sequence: MoveOfSequence;
-  rating: Rating;
-  refresh_token: RefreshToken;
+  "app_user": AppUser,
+  "dance_move": DanceMove,
+  "dance_sequence": DanceSequence,
+  "event": Event,
+  "favorite_move": FavoriteMove,
+  "knex_migrations": KnexMigrations,
+  "knex_migrations_lock": KnexMigrationsLock,
+  "move_of_sequence": MoveOfSequence,
+  "rating": Rating,
+  "refresh_token": RefreshToken,
 };
 
 export type AppUser = {
@@ -62,6 +78,14 @@ export type DanceMove = {
   start_position: KeyPositionEnum;
   end_position: KeyPositionEnum;
   parent_move_id: number | null;
+  pose_data: string | null;
+  pose_file_name: string | null;
+  pose_status: PoseStatusEnum | null;
+  pose_error: string | null;
+  youtube_url: string | null;
+  submission_status: SubmissionStatusEnum;
+  created_by: number | null;
+  rejection_reason: string | null;
 };
 
 export type DanceSequence = {
@@ -70,6 +94,7 @@ export type DanceSequence = {
   event_id: number | null;
   name: string;
   description: string | null;
+  youtube_url: string | null;
 };
 
 export type Event = {
@@ -77,6 +102,12 @@ export type Event = {
   name: string;
   location: string | null;
   date: Date | null;
+};
+
+export type FavoriteMove = {
+  user_id: number;
+  move_id: number;
+  created_at: Date;
 };
 
 export type KnexMigrations = {
@@ -111,3 +142,4 @@ export type RefreshToken = {
   created_at: Date | null;
   expires_at: Date;
 };
+

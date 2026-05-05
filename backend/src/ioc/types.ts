@@ -9,6 +9,8 @@ const TYPES = {
   movesOfSequenceRepository: Symbol.for('movesOfSequenceRepository'),
   eventService: Symbol.for('eventService'),
   eventRepository: Symbol.for('eventRepository'),
+  favoriteMoveService: Symbol.for('favoriteMoveService'),
+  favoriteMoveRepository: Symbol.for('favoriteMoveRepository'),
   database: Symbol.for('database')
 };
 

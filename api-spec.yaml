@@ -1,0 +1,1901 @@
+openapi: 3.0.0
+
+info:
+  title: Groov API
+  version: 1.0.0
+  description: |
+    REST API specifikacija Groov šokių judesių mokymosi ir choreografijos platformai.
+    Groov sistema skirta šokėjams padėti mokytis ir atsiminti šokių judesius,
+    kurti sekų choreografijas ir įvertinti kitų vartotojų sukurtas sekas.
+
+    **Autentifikacija:**
+    - Sistema naudoja JWT token'us su HTTP-only cookies
+    - Access token'ai ir refresh token'ai saugomi slapukuose
+    - Chranomi endpointai pažymėti 🔒 simboliu
+
+  contact:
+    name: Groov Support
+    email: support@groov.lt
+
+servers:
+  - url: http://localhost:3003
+    description: Local development server
+  - url: https://api.groov.lt
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Autentifikacijos ir autorizacijos operacijos
+  - name: Dance Moves
+    description: Šokių judesių valdymo operacijos
+  - name: Dance Sequences
+    description: Šokių sekų valdymo operacijos
+  - name: Sequence Moves
+    description: Judesių priskyrimo sekoms operacijos
+  - name: Events
+    description: Renginių valdymo operacijos
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: JWT access token saugomas HTTP-only cookie
+
+  schemas:
+    # Auth Schemas
+    SignupRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: "user123"
+          description: Unikalus vartotojo vardas
+        password:
+          type: string
+          minLength: 6
+          format: password
+          example: "password123"
+          description: Vartotojo slaptažodis (minimum 6 simboliai)
+
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "user123"
+        password:
+          type: string
+          format: password
+          example: "password123"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "user123"
+        role:
+          type: string
+          enum: [admin, user]
+          example: "user"
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    # Dance Move Schemas
+    DanceMove:
+      type: object
+      required:
+        - name
+        - difficulty
+        - start_position
+        - end_position
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Swing Out"
+          description: Šokio judesiuo pavadinimas
+        description:
+          type: string
+          maxLength: 500
+          example: "Basic swing out movement from closed position to open"
+          description: Detalus judesio aprašymas
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, very_hard]
+          example: "medium"
+          description: Judesio sudėtingumas
+        start_position:
+          type: string
+          enum: [closed, openLeftToRight, openRightToRight, openLeftToLeft, openRightToLeft, sweethearts]
+          example: "closed"
+          description: Pradinė pozicija prieš judesį
+        end_position:
+          type: string
+          enum: [closed, openLeftToRight, openRightToRight, openLeftToLeft, openRightToLeft, sweethearts]
+          example: "openLeftToRight"
+          description: Galinė pozicija po judesio
+        parent_move_id:
+          type: integer
+          nullable: true
+          example: null
+          description: Tėvinio judesio ID (jei judesis yra variacija)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-01-15T10:30:00Z"
+        deleted:
+          type: boolean
+          readOnly: true
+          example: false
+
+    DanceMoveCreate:
+      type: object
+      required:
+        - name
+        - difficulty
+        - start_position
+        - end_position
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Swing Out"
+        description:
+          type: string
+          maxLength: 500
+          example: "Basic swing out movement from closed position to open"
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, very_hard]
+          example: "medium"
+        start_position:
+          type: string
+          enum: [closed, openLeftToRight, openRightToRight, openLeftToLeft, openRightToLeft, sweethearts]
+          example: "closed"
+        end_position:
+          type: string
+          enum: [closed, openLeftToRight, openRightToRight, openLeftToLeft, openRightToLeft, sweethearts]
+          example: "openLeftToRight"
+        parent_move_id:
+          type: integer
+          nullable: true
+          example: null
+
+    DanceMoveUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Swing Out Updated"
+        description:
+          type: string
+          maxLength: 500
+          example: "Updated description"
+        difficulty:
+          type: string
+          enum: [easy, medium, hard, very_hard]
+          example: "hard"
+        start_position:
+          type: string
+          enum: [closed, openLeftToRight, openRightToRight, openLeftToLeft, openRightToLeft, sweethearts]
+          example: "closed"
+        end_position:
+          type: string
+          enum: [closed, openLeftToRight, openRightToRight, openLeftToLeft, openRightToLeft, sweethearts]
+          example: "openLeftToRight"
+        parent_move_id:
+          type: integer
+          nullable: true
+          example: 5
+
+    # Dance Sequence Schemas
+    DanceSequence:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "My First Choreography"
+          description: Sekos pavadinimas
+        description:
+          type: string
+          example: "Beginner-friendly sequence"
+          description: Sekos aprašymas
+        event_id:
+          type: integer
+          nullable: true
+          example: 1
+          description: Susijusio renginio ID (jei yra)
+        creator_id:
+          type: integer
+          readOnly: true
+          example: 5
+          description: Sekos kūrėjo vartotojo ID
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-01-15T10:30:00Z"
+        deleted:
+          type: boolean
+          readOnly: true
+          example: false
+
+    DanceSequenceCreate:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "My First Choreography"
+        description:
+          type: string
+          maxLength: 500
+          example: "Beginner-friendly sequence for learning basics"
+        event_id:
+          type: integer
+          nullable: true
+          example: null
+
+    DanceSequenceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Updated Choreography Name"
+        description:
+          type: string
+          maxLength: 500
+          example: "Updated description"
+        event_id:
+          type: integer
+          nullable: true
+          example: 2
+
+    # Sequence Moves Schema
+    MoveOfSequence:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        sequence_id:
+          type: integer
+          example: 1
+        move_id:
+          type: integer
+          example: 3
+        order_index:
+          type: integer
+          example: 0
+          description: Judesio pozicija sekoje (pradedant nuo 0)
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+
+    UpdateSequenceMovesRequest:
+      type: object
+      required:
+        - moveIds
+      properties:
+        moveIds:
+          type: array
+          items:
+            type: integer
+          example: [1, 3, 5, 2]
+          description: Judesių ID masyvas reikiama tvarka
+
+    # Event Schemas
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "Vilnius Swing Festival 2024"
+          description: Renginio pavadinimas
+        description:
+          type: string
+          example: "Annual swing dance festival"
+          description: Renginio aprašymas
+        location:
+          type: string
+          example: "Vilnius, Lithuania"
+          description: Renginio vieta
+        event_date:
+          type: string
+          format: date-time
+          example: "2024-06-15T18:00:00Z"
+          description: Renginio data ir laikas
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-01-15T10:30:00Z"
+        deleted:
+          type: boolean
+          readOnly: true
+          example: false
+
+    EventCreate:
+      type: object
+      required:
+        - name
+        - location
+        - event_date
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Vilnius Swing Festival 2024"
+        description:
+          type: string
+          maxLength: 500
+          example: "Annual swing dance festival"
+        location:
+          type: string
+          maxLength: 200
+          example: "Vilnius, Lithuania"
+        event_date:
+          type: string
+          format: date-time
+          example: "2024-06-15T18:00:00Z"
+
+    EventUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "Updated Festival Name"
+        description:
+          type: string
+          maxLength: 500
+          example: "Updated description"
+        location:
+          type: string
+          maxLength: 200
+          example: "Updated location"
+        event_date:
+          type: string
+          format: date-time
+          example: "2024-07-15T18:00:00Z"
+
+    # Error Schemas
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Resource not found"
+        message:
+          type: string
+          example: "The requested dance move does not exist"
+        statusCode:
+          type: integer
+          example: 404
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Validation failed"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "difficulty"
+              message:
+                type: string
+                example: "Invalid difficulty value"
+
+paths:
+  # ============================================
+  # AUTH ENDPOINTS
+  # ============================================
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: Registruoti naują vartotoją
+      description: |
+        Sukuria naują vartotojo paskyrą sistemoje.
+        Vartotojo vardas turi būti unikalus.
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              validSignup:
+                summary: Teisingas registracijos pavyzdys
+                value:
+                  username: "swingdancer2024"
+                  password: "SecurePass123"
+      responses:
+        '200':
+          description: Registracija sėkminga - vartotojas sukurtas
+          content:
+            application/json:
+              example:
+                message: "User created successfully"
+        '400':
+          description: Neteisingi duomenys
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "Username and password are required"
+        '409':
+          description: Konfliktas - vartotojas jau egzistuoja
+          content:
+            application/json:
+              example:
+                error: "Conflict"
+                message: "Username already exists"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/auth/signup \
+              -H "Content-Type: application/json" \
+              -d '{
+                "username": "swingdancer2024",
+                "password": "SecurePass123"
+              }'
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/auth/signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: 'swingdancer2024',
+                password: 'SecurePass123'
+              })
+            });
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Prisijungti prie sistemos
+      description: |
+        Autentifikuoja vartotoją ir grąžina JWT token'us HTTP-only slapukuose.
+        Access token naudojamas API užklausoms, refresh token - token atnaujinimui.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              validLogin:
+                summary: Teisingas prisijungimas
+                value:
+                  username: "swingdancer2024"
+                  password: "SecurePass123"
+      responses:
+        '200':
+          description: Prisijungimas sėkmingas
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: "accessToken=eyJhbGc...; HttpOnly; Secure; SameSite=Strict"
+              description: Access token ir refresh token HTTP-only cookies
+          content:
+            application/json:
+              example:
+                message: "Login successful"
+        '400':
+          description: Neteisingi prisijungimo duomenys
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "Invalid username or password"
+        '401':
+          description: Autentifikacija nepavyko
+          content:
+            application/json:
+              example:
+                error: "Unauthorized"
+                message: "Invalid credentials"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/auth/login \
+              -H "Content-Type: application/json" \
+              -c cookies.txt \
+              -d '{
+                "username": "swingdancer2024",
+                "password": "SecurePass123"
+              }'
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                username: 'swingdancer2024',
+                password: 'SecurePass123'
+              })
+            });
+
+  /auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Atsijungti nuo sistemos
+      description: |
+        Ištrina autentifikacijos slapukus ir anuliuoja refresh token duomenų bazėje.
+        Vartotojas turi būti prisijungęs.
+      operationId: logout
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Atsijungimas sėkmingas
+          content:
+            application/json:
+              example:
+                message: "Logout successful"
+        '400':
+          description: Neteisingi duomenys
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+        '500':
+          description: Serverio klaida
+          content:
+            application/json:
+              example:
+                error: "Internal server error"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/auth/logout \
+              -b cookies.txt \
+              -c cookies.txt
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/auth/logout', {
+              method: 'POST',
+              credentials: 'include'
+            });
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Atnaujinti access token
+      description: |
+        Naudoja refresh token iš slapuko, kad gautų naują access token.
+        Automatiškai kviečiamas frontend, kai access token baigiasi galioti.
+      operationId: refreshToken
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Token atnaujintas sėkmingai
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Naujas access token slapuke
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newAccessToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Refresh token nerastas
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "Refresh token is required"
+        '401':
+          description: Neteisingas arba pasibaigęs refresh token
+          content:
+            application/json:
+              example:
+                error: "Unauthorized"
+                message: "Invalid or expired refresh token"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/auth/refresh \
+              -b cookies.txt \
+              -c cookies.txt
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/auth/refresh', {
+              method: 'POST',
+              credentials: 'include'
+            });
+            const data = await response.json();
+
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Gauti dabartinio vartotojo informaciją
+      description: |
+        Grąžina prisijungusio vartotojo duomenis pagal access token iš slapuko.
+      operationId: getCurrentUser
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Vartotojo duomenys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              example:
+                id: 1
+                username: "swingdancer2024"
+                role: "user"
+                created_at: "2024-01-15T10:30:00Z"
+        '401':
+          description: Neprisijungęs arba neteisingas token
+          content:
+            application/json:
+              example:
+                error: "Unauthorized"
+                message: "Authentication required"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/auth/me \
+              -b cookies.txt
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/auth/me', {
+              credentials: 'include'
+            });
+            const user = await response.json();
+
+  # ============================================
+  # DANCE MOVES ENDPOINTS
+  # ============================================
+  /dance-moves:
+    get:
+      tags:
+        - Dance Moves
+      summary: Gauti visus šokių judesius
+      description: |
+        Grąžina visų aktyvių (neištrintų) šokių judesių sąrašą.
+        Galima filtruoti pagal pavadinimą naudojant search parametrą.
+      operationId: getAllDanceMoves
+      parameters:
+        - name: search
+          in: query
+          description: Paieškos tekstas judesio pavadinime
+          required: false
+          schema:
+            type: string
+          example: "swing"
+      responses:
+        '200':
+          description: Šokių judesių sąrašas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DanceMove'
+              examples:
+                movesList:
+                  summary: Judesių sąrašo pavyzdys
+                  value:
+                    - id: 1
+                      name: "Swing Out"
+                      description: "Basic swing out movement"
+                      difficulty: "easy"
+                      start_position: "closed"
+                      end_position: "openLeftToRight"
+                      parent_move_id: null
+                      created_at: "2024-01-15T10:30:00Z"
+                      updated_at: "2024-01-15T10:30:00Z"
+                      deleted: false
+                    - id: 2
+                      name: "Tuck Turn"
+                      description: "Turn variation from open position"
+                      difficulty: "medium"
+                      start_position: "openLeftToRight"
+                      end_position: "openLeftToRight"
+                      parent_move_id: null
+                      created_at: "2024-01-15T11:00:00Z"
+                      updated_at: "2024-01-15T11:00:00Z"
+                      deleted: false
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            # Gauti visus judesius
+            curl -X GET http://localhost:3003/dance-moves
+
+            # Su paieška
+            curl -X GET "http://localhost:3003/dance-moves?search=swing"
+        - lang: 'JavaScript'
+          source: |
+            // Gauti visus judesius
+            const response = await fetch('http://localhost:3003/dance-moves');
+            const moves = await response.json();
+
+            // Su paieška
+            const searchResponse = await fetch('http://localhost:3003/dance-moves?search=swing');
+            const searchResults = await searchResponse.json();
+
+    post:
+      tags:
+        - Dance Moves
+      summary: 🔒 Sukurti naują šokių judesį
+      description: |
+        Sukuria naują šokių judesį sistemoje.
+        **Reikalinga admin teisės.**
+      operationId: createDanceMove
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DanceMoveCreate'
+            examples:
+              basicMove:
+                summary: Paprasto judesio kūrimas
+                value:
+                  name: "Circle Left"
+                  description: "Circular movement to the left"
+                  difficulty: "easy"
+                  start_position: "closed"
+                  end_position: "closed"
+                  parent_move_id: null
+              variationMove:
+                summary: Variacija su tėviniu judesiu
+                value:
+                  name: "Swing Out with Style"
+                  description: "Stylish variation of basic swing out"
+                  difficulty: "hard"
+                  start_position: "closed"
+                  end_position: "openLeftToRight"
+                  parent_move_id: 1
+      responses:
+        '201':
+          description: Judesis sukurtas sėkmingai
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL naujai sukurto judesio
+              example: "/dance-moves/15"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceMove'
+              example:
+                id: 15
+                name: "Circle Left"
+                description: "Circular movement to the left"
+                difficulty: "easy"
+                start_position: "closed"
+                end_position: "closed"
+                parent_move_id: null
+                created_at: "2024-01-20T14:30:00Z"
+                updated_at: "2024-01-20T14:30:00Z"
+                deleted: false
+        '400':
+          description: Neteisingi duomenys arba validacijos klaida
+          content:
+            application/json:
+              examples:
+                emptyBody:
+                  summary: Tuščias request body
+                  value:
+                    error: "Bad request"
+                    message: "Request body cannot be empty."
+                idNotAllowed:
+                  summary: ID laukas neleistinas
+                  value:
+                    error: "Bad request"
+                    message: "ID field is not allowed when creating a new DanceMove."
+                validationError:
+                  summary: Validacijos klaida
+                  value:
+                    error: "Validation error"
+                    message: "Could not post dance move object"
+        '401':
+          description: Neautentifikuotas vartotojas
+          content:
+            application/json:
+              example:
+                error: "Unauthorized"
+                message: "Authentication required"
+        '403':
+          description: Nepakankamos teisės (ne admin)
+          content:
+            application/json:
+              example:
+                error: "Forbidden"
+                message: "Admin role required"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/dance-moves \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{
+                "name": "Circle Left",
+                "description": "Circular movement to the left",
+                "difficulty": "easy",
+                "start_position": "closed",
+                "end_position": "closed",
+                "parent_move_id": null
+              }'
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                name: 'Circle Left',
+                description: 'Circular movement to the left',
+                difficulty: 'easy',
+                start_position: 'closed',
+                end_position: 'closed',
+                parent_move_id: null
+              })
+            });
+            const newMove = await response.json();
+
+  /dance-moves/{id}:
+    get:
+      tags:
+        - Dance Moves
+      summary: Gauti šokių judesį pagal ID
+      description: Grąžina detalią informaciją apie konkretų šokių judesį
+      operationId: getDanceMoveById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Šokių judesio ID
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: Šokių judesio informacija
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceMove'
+              example:
+                id: 1
+                name: "Swing Out"
+                description: "Basic swing out movement from closed to open position"
+                difficulty: "easy"
+                start_position: "closed"
+                end_position: "openLeftToRight"
+                parent_move_id: null
+                created_at: "2024-01-15T10:30:00Z"
+                updated_at: "2024-01-15T10:30:00Z"
+                deleted: false
+        '400':
+          description: Neteisingas ID formatas
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "DanceMove id has to be a positive integer"
+        '404':
+          description: Judesis nerastas
+          content:
+            application/json:
+              example:
+                error: "Not found"
+                message: "Dance move not found"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/dance-moves/1
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves/1');
+            const move = await response.json();
+
+    put:
+      tags:
+        - Dance Moves
+      summary: 🔒 Atnaujinti šokių judesį
+      description: |
+        Atnaujina egzistuojančio šokių judesio informaciją.
+        **Reikalinga admin teisės.**
+      operationId: updateDanceMove
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Šokių judesio ID
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DanceMoveUpdate'
+            example:
+              name: "Swing Out - Updated"
+              description: "Updated description with more details"
+              difficulty: "medium"
+      responses:
+        '200':
+          description: Judesis atnaujintas sėkmingai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceMove'
+              example:
+                id: 1
+                name: "Swing Out - Updated"
+                description: "Updated description with more details"
+                difficulty: "medium"
+                start_position: "closed"
+                end_position: "openLeftToRight"
+                parent_move_id: null
+                created_at: "2024-01-15T10:30:00Z"
+                updated_at: "2024-01-20T15:00:00Z"
+                deleted: false
+        '400':
+          description: Neteisingi duomenys
+          content:
+            application/json:
+              examples:
+                invalidId:
+                  value:
+                    error: "Bad request"
+                    message: "DanceMove id has to be a positive integer"
+                idInBody:
+                  value:
+                    error: "Bad request"
+                    message: "ID field is not allowed when updating a new DanceMove."
+        '401':
+          description: Neautentifikuotas
+          content:
+            application/json:
+              example:
+                error: "Unauthorized"
+        '403':
+          description: Nepakankamos teisės
+          content:
+            application/json:
+              example:
+                error: "Forbidden"
+                message: "Admin role required"
+        '404':
+          description: Judesis nerastas
+          content:
+            application/json:
+              example:
+                error: "Not found"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X PUT http://localhost:3003/dance-moves/1 \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{
+                "name": "Swing Out - Updated",
+                "difficulty": "medium"
+              }'
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves/1', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                name: 'Swing Out - Updated',
+                difficulty: 'medium'
+              })
+            });
+
+    delete:
+      tags:
+        - Dance Moves
+      summary: 🔒 Ištrinti šokių judesį
+      description: |
+        Atliekamas soft delete - pažymi judesį kaip ištrintą, bet nepašalina iš duomenų bazės.
+        **Reikalinga admin teisės.**
+      operationId: deleteDanceMove
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Šokių judesio ID
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: Judesis ištrintas sėkmingai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceMove'
+              example:
+                id: 1
+                name: "Swing Out"
+                deleted: true
+        '400':
+          description: Neteisingas ID
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "DanceMove id has to be a positive integer"
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės
+        '404':
+          description: Judesis nerastas
+          content:
+            application/json:
+              example:
+                error: "Not found"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X DELETE http://localhost:3003/dance-moves/1 \
+              -b cookies.txt
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves/1', {
+              method: 'DELETE',
+              credentials: 'include'
+            });
+
+  /dance-moves/difficulty/{difficulty}:
+    get:
+      tags:
+        - Dance Moves
+      summary: Gauti judesius pagal sudėtingumą
+      description: Filtruoja šokių judesius pagal sudėtingumo lygį
+      operationId: getDanceMovesByDifficulty
+      parameters:
+        - name: difficulty
+          in: path
+          required: true
+          description: Sudėtingumo lygis
+          schema:
+            type: string
+            enum: [easy, medium, hard, very_hard]
+          example: "easy"
+      responses:
+        '200':
+          description: Filtruotų judesių sąrašas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DanceMove'
+              example:
+                - id: 1
+                  name: "Swing Out"
+                  difficulty: "easy"
+                  start_position: "closed"
+                  end_position: "openLeftToRight"
+                - id: 5
+                  name: "Circle Left"
+                  difficulty: "easy"
+                  start_position: "closed"
+                  end_position: "closed"
+        '400':
+          description: Neteisingas sudėtingumo lygis
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "Invalid difficulty value: ultra_hard"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/dance-moves/difficulty/easy
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves/difficulty/easy');
+            const easyMoves = await response.json();
+
+  /dance-moves/{id}/children:
+    get:
+      tags:
+        - Dance Moves
+      summary: Gauti judesio variacijų sąrašą
+      description: Grąžina visus judesius, kurie yra nurodyto judesio variacijomis (children)
+      operationId: getChildMoves
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Tėvinio judesio ID
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: Vaikiškų judesių sąrašas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DanceMove'
+              example:
+                - id: 10
+                  name: "Swing Out with Styling"
+                  parent_move_id: 1
+                  difficulty: "hard"
+                - id: 11
+                  name: "Swing Out Delayed"
+                  parent_move_id: 1
+                  difficulty: "medium"
+        '400':
+          description: Neteisingas ID
+        '404':
+          description: Tėvinis judesis nerastas
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/dance-moves/1/children
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves/1/children');
+            const variations = await response.json();
+
+  /dance-moves/{id}/parent:
+    get:
+      tags:
+        - Dance Moves
+      summary: Gauti tėvinį judesį
+      description: Grąžina tėvinį judesį, jei judesis yra variacija
+      operationId: getParentMove
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Vaiko judesio ID
+          schema:
+            type: integer
+            minimum: 1
+          example: 10
+      responses:
+        '200':
+          description: Tėvinis judesis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceMove'
+              example:
+                id: 1
+                name: "Swing Out"
+                parent_move_id: null
+        '400':
+          description: Neteisingas ID
+        '404':
+          description: Judesis neturi tėvinio judesio arba nerastas
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/dance-moves/10/parent
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-moves/10/parent');
+            const parent = await response.json();
+
+  # ============================================
+  # DANCE SEQUENCES ENDPOINTS
+  # ============================================
+  /dance-sequences:
+    get:
+      tags:
+        - Dance Sequences
+      summary: Gauti visas šokių sekas
+      description: Grąžina visų aktyvių choreografijų sąrašą
+      operationId: getAllDanceSequences
+      responses:
+        '200':
+          description: Šokių sekų sąrašas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DanceSequence'
+              example:
+                - id: 1
+                  name: "Beginner Routine"
+                  description: "Simple sequence for beginners"
+                  event_id: null
+                  creator_id: 3
+                  created_at: "2024-01-15T10:30:00Z"
+                - id: 2
+                  name: "Festival Performance"
+                  description: "Advanced routine for the festival"
+                  event_id: 1
+                  creator_id: 5
+                  created_at: "2024-01-16T14:00:00Z"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/dance-sequences
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-sequences');
+            const sequences = await response.json();
+
+    post:
+      tags:
+        - Dance Sequences
+      summary: 🔒 Sukurti naują šokių seką
+      description: |
+        Sukuria naują choreografiją.
+        **Reikalingas prisijungimas.**
+      operationId: createDanceSequence
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DanceSequenceCreate'
+            examples:
+              basicSequence:
+                summary: Paprasta seka
+                value:
+                  name: "My First Routine"
+                  description: "Learning the basics"
+                  event_id: null
+              eventSequence:
+                summary: Seka renginiui
+                value:
+                  name: "Festival Performance 2024"
+                  description: "Competition routine"
+                  event_id: 1
+      responses:
+        '201':
+          description: Seka sukurta sėkmingai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceSequence'
+              example:
+                id: 15
+                name: "My First Routine"
+                description: "Learning the basics"
+                event_id: null
+                creator_id: 3
+                created_at: "2024-01-20T16:00:00Z"
+                updated_at: "2024-01-20T16:00:00Z"
+                deleted: false
+        '400':
+          description: Validacijos klaida
+          content:
+            application/json:
+              example:
+                error: "Validation error"
+                message: "Name and description are required"
+        '401':
+          description: Neautentifikuotas
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/dance-sequences \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{
+                "name": "My First Routine",
+                "description": "Learning the basics",
+                "event_id": null
+              }'
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-sequences', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                name: 'My First Routine',
+                description: 'Learning the basics',
+                event_id: null
+              })
+            });
+
+  /dance-sequences/{id}:
+    get:
+      tags:
+        - Dance Sequences
+      summary: Gauti seką pagal ID
+      description: Grąžina detalią informaciją apie choreografiją
+      operationId: getDanceSequenceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sekos ID
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: Sekos informacija
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceSequence'
+              example:
+                id: 1
+                name: "Beginner Routine"
+                description: "Simple sequence for beginners"
+                event_id: null
+                creator_id: 3
+                created_at: "2024-01-15T10:30:00Z"
+                updated_at: "2024-01-15T10:30:00Z"
+                deleted: false
+        '404':
+          description: Seka nerasta
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/dance-sequences/1
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/dance-sequences/1');
+            const sequence = await response.json();
+
+    put:
+      tags:
+        - Dance Sequences
+      summary: 🔒 Atnaujinti seką
+      description: |
+        Atnaujina sekos informaciją.
+        **Vartotojas turi būti sekos kūrėjas arba admin.**
+      operationId: updateDanceSequence
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DanceSequenceUpdate'
+            example:
+              name: "Updated Routine Name"
+              description: "Updated description"
+      responses:
+        '200':
+          description: Seka atnaujinta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DanceSequence'
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės (ne kūrėjas ir ne admin)
+        '404':
+          description: Seka nerasta
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X PUT http://localhost:3003/dance-sequences/1 \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{"name": "Updated Name"}'
+
+    delete:
+      tags:
+        - Dance Sequences
+      summary: 🔒 Ištrinti seką
+      description: |
+        Soft delete - pažymi seką kaip ištrintą.
+        **Vartotojas turi būti sekos kūrėjas arba admin.**
+      operationId: deleteDanceSequence
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Seka ištrinta
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės
+        '404':
+          description: Seka nerasta
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X DELETE http://localhost:3003/dance-sequences/1 \
+              -b cookies.txt
+
+  # ============================================
+  # SEQUENCE MOVES ENDPOINTS
+  # ============================================
+  /sequence-moves/{id}:
+    get:
+      tags:
+        - Sequence Moves
+      summary: Gauti visus sekos judesius
+      description: Grąžina visus judesius, priskirtus choreografijai, išrikiuotus pagal order_index
+      operationId: getSequenceMoves
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sekos ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Sekos judesių sąrašas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MoveOfSequence'
+              example:
+                - id: 1
+                  sequence_id: 1
+                  move_id: 3
+                  order_index: 0
+                  created_at: "2024-01-15T10:30:00Z"
+                - id: 2
+                  sequence_id: 1
+                  move_id: 5
+                  order_index: 1
+                  created_at: "2024-01-15T10:31:00Z"
+                - id: 3
+                  sequence_id: 1
+                  move_id: 2
+                  order_index: 2
+                  created_at: "2024-01-15T10:32:00Z"
+        '404':
+          description: Seka nerasta
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/sequence-moves/1
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/sequence-moves/1');
+            const moves = await response.json();
+
+    put:
+      tags:
+        - Sequence Moves
+      summary: 🔒 Pakeisti visus sekos judesius
+      description: |
+        Pašalina esamus sekos judesius ir prideda naujus pagal pateiktą sąrašą.
+        **Vartotojas turi būti sekos kūrėjas arba admin.**
+      operationId: updateSequenceMoves
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sekos ID
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSequenceMovesRequest'
+            example:
+              moveIds: [3, 5, 2, 8, 1]
+      responses:
+        '200':
+          description: Sekos judesiai atnaujinti sėkmingai
+          content:
+            application/json:
+              example:
+                message: "Sequence moves updated successfully"
+                updatedMoves:
+                  - sequence_id: 1
+                    move_id: 3
+                    order_index: 0
+                  - sequence_id: 1
+                    move_id: 5
+                    order_index: 1
+                  - sequence_id: 1
+                    move_id: 2
+                    order_index: 2
+                  - sequence_id: 1
+                    move_id: 8
+                    order_index: 3
+                  - sequence_id: 1
+                    move_id: 1
+                    order_index: 4
+        '400':
+          description: Neteisingi duomenys (pvz., neegzistuojantys move ID)
+          content:
+            application/json:
+              example:
+                error: "Bad request"
+                message: "Invalid move IDs provided"
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X PUT http://localhost:3003/sequence-moves/1 \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{"moveIds": [3, 5, 2, 8, 1]}'
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/sequence-moves/1', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                moveIds: [3, 5, 2, 8, 1]
+              })
+            });
+
+    delete:
+      tags:
+        - Sequence Moves
+      summary: 🔒 Ištrinti visus sekos judesius
+      description: |
+        Pašalina visus judesius iš choreografijos.
+        **Vartotojas turi būti sekos kūrėjas arba admin.**
+      operationId: deleteAllSequenceMoves
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Sekos ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Visi judesiai ištrinti sėkmingai
+          content:
+            application/json:
+              example:
+                message: "All moves deleted successfully from sequence 1"
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X DELETE http://localhost:3003/sequence-moves/1 \
+              -b cookies.txt
+
+  # ============================================
+  # EVENTS ENDPOINTS
+  # ============================================
+  /events:
+    get:
+      tags:
+        - Events
+      summary: Gauti visus renginius
+      description: Grąžina visų aktyvių renginių sąrašą
+      operationId: getAllEvents
+      responses:
+        '200':
+          description: Renginių sąrašas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+              example:
+                - id: 1
+                  name: "Vilnius Swing Festival 2024"
+                  description: "Annual swing dance festival"
+                  location: "Vilnius, Lithuania"
+                  event_date: "2024-06-15T18:00:00Z"
+                  created_at: "2024-01-10T09:00:00Z"
+                - id: 2
+                  name: "Kaunas Lindy Hop Weekend"
+                  description: "Weekend workshop and social dancing"
+                  location: "Kaunas, Lithuania"
+                  event_date: "2024-07-20T19:00:00Z"
+                  created_at: "2024-01-12T10:00:00Z"
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/events
+        - lang: 'JavaScript'
+          source: |
+            const response = await fetch('http://localhost:3003/events');
+            const events = await response.json();
+
+    post:
+      tags:
+        - Events
+      summary: 🔒 Sukurti naują renginį
+      description: |
+        Sukuria naują šokių renginį.
+        **Reikalinga admin teisės.**
+      operationId: createEvent
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreate'
+            example:
+              name: "Vilnius Swing Festival 2024"
+              description: "Annual swing dance festival with workshops and parties"
+              location: "Vilnius, Lithuania"
+              event_date: "2024-06-15T18:00:00Z"
+      responses:
+        '200':
+          description: Renginys sukurtas sėkmingai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+              example:
+                id: 5
+                name: "Vilnius Swing Festival 2024"
+                description: "Annual swing dance festival with workshops and parties"
+                location: "Vilnius, Lithuania"
+                event_date: "2024-06-15T18:00:00Z"
+                created_at: "2024-01-20T14:00:00Z"
+                updated_at: "2024-01-20T14:00:00Z"
+                deleted: false
+        '400':
+          description: Validacijos klaida
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės (ne admin)
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X POST http://localhost:3003/events \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{
+                "name": "Vilnius Swing Festival 2024",
+                "description": "Annual swing dance festival",
+                "location": "Vilnius, Lithuania",
+                "event_date": "2024-06-15T18:00:00Z"
+              }'
+
+  /events/{id}:
+    get:
+      tags:
+        - Events
+      summary: Gauti renginį pagal ID
+      description: Grąžina detalią informaciją apie konkretų renginį
+      operationId: getEventById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Renginio ID
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Renginio informacija
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+              example:
+                id: 1
+                name: "Vilnius Swing Festival 2024"
+                description: "Annual swing dance festival"
+                location: "Vilnius, Lithuania"
+                event_date: "2024-06-15T18:00:00Z"
+                created_at: "2024-01-10T09:00:00Z"
+                updated_at: "2024-01-10T09:00:00Z"
+                deleted: false
+        '404':
+          description: Renginys nerastas
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X GET http://localhost:3003/events/1
+
+    put:
+      tags:
+        - Events
+      summary: 🔒 Atnaujinti renginį
+      description: |
+        Atnaujina renginio informaciją.
+        **Reikalinga admin teisės.**
+      operationId: updateEvent
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventUpdate'
+            example:
+              name: "Vilnius Swing Festival 2024 - UPDATED"
+              location: "New venue, Vilnius"
+      responses:
+        '200':
+          description: Renginys atnaujintas sėkmingai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės
+        '404':
+          description: Renginys nerastas
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X PUT http://localhost:3003/events/1 \
+              -H "Content-Type: application/json" \
+              -b cookies.txt \
+              -d '{"name": "Updated Event Name"}'
+
+    delete:
+      tags:
+        - Events
+      summary: 🔒 Ištrinti renginį
+      description: |
+        Soft delete - pažymi renginį kaip ištrintą.
+        **Reikalinga admin teisės.**
+      operationId: deleteEvent
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: Renginys ištrintas sėkmingai
+          content:
+            application/json:
+              example:
+                message: "Event deleted successfully"
+        '401':
+          description: Neautentifikuotas
+        '403':
+          description: Nepakankamos teisės
+        '404':
+          description: Renginys nerastas
+      x-codeSamples:
+        - lang: 'curl'
+          source: |
+            curl -X DELETE http://localhost:3003/events/1 \
+              -b cookies.txt

@@ -21,6 +21,13 @@ export async function up(knex: Knex): Promise<void> {
 
     CREATE TYPE role_type AS ENUM ('admin', 'user');
 
+    CREATE TYPE pose_status_enum AS ENUM (
+      'queued',
+      'processing',
+      'ready',
+      'failed'
+    );
+
     -- USERS
     CREATE TABLE IF NOT EXISTS app_user (
       id SERIAL PRIMARY KEY,
@@ -55,7 +62,12 @@ export async function up(knex: Knex): Promise<void> {
       difficulty difficulty_enum NOT NULL,
       start_position key_position_enum NOT NULL,
       end_position key_position_enum NOT NULL,
-      parent_move_id INT REFERENCES dance_move(id) ON DELETE SET NULL
+      parent_move_id INT REFERENCES dance_move(id) ON DELETE SET NULL,
+      pose_data TEXT,
+      pose_file_name VARCHAR(255),
+      pose_status pose_status_enum,
+      pose_error TEXT,
+      youtube_url VARCHAR(500)
     );
 
     -- MOVE OF SEQUENCE (association table)
@@ -99,5 +111,6 @@ export async function down(knex: Knex): Promise<void> {
     DROP TYPE IF EXISTS difficulty_enum;
     DROP TYPE IF EXISTS key_position_enum;
     DROP TYPE IF EXISTS role_type;
+    DROP TYPE IF EXISTS pose_status_enum;
   `);
 }

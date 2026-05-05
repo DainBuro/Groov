@@ -2,10 +2,9 @@ import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'ax
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3003';
 
-// Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Important for cookie-based auth
+  withCredentials: true, // send auth cookies with each request
   headers: {
     'Content-Type': 'application/json',
   },
@@ -29,7 +28,6 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     return config;
@@ -39,7 +37,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for handling 401 and refreshing tokens
+// On 401, try refreshing the token once and replay the request.
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -47,13 +45,12 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest: any = error.config;
 
-    // Don't retry auth endpoints to prevent infinite loops
+    // Don't refresh for /auth/ calls - avoids infinite loops on bad logins.
     const isAuthEndpoint = originalRequest.url?.includes('/auth/');
 
-    // If error is 401 and we haven't retried yet and it's not an auth endpoint
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
-        // If already refreshing, queue this request
+        // Already refreshing - wait for it to finish before retrying.
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -69,13 +66,11 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Try to refresh the token
         await api.post('/auth/refresh');
         processQueue(null, null);
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        // Don't redirect here - let the component handle it
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

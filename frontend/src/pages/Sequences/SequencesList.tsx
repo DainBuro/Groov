@@ -26,6 +26,7 @@ export const SequencesList: React.FC = () => {
   const [newSequenceEventId, setNewSequenceEventId] = useState<number | null>(
     null
   );
+  const [newSequenceYoutubeUrl, setNewSequenceYoutubeUrl] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showMySequences, setShowMySequences] = useState(true);
 
@@ -80,6 +81,7 @@ export const SequencesList: React.FC = () => {
         name: newSequenceName,
         description: newSequenceDescription || undefined,
         event_id: newSequenceEventId || undefined,
+        youtube_url: newSequenceYoutubeUrl.trim() || null,
       });
       navigate(`/sequences/${newSequence.id}`);
     } catch (err: any) {
@@ -187,6 +189,16 @@ export const SequencesList: React.FC = () => {
                 ))}
               </select>
             </div>
+            <div className={styles.formGroup}>
+              <label htmlFor="youtubeUrl">YouTube Video URL (optional)</label>
+              <input
+                id="youtubeUrl"
+                type="url"
+                value={newSequenceYoutubeUrl}
+                onChange={(e) => setNewSequenceYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+            </div>
             <div className={styles.formActions}>
               <Button type="submit" variant="primary">
                 Create
@@ -217,7 +229,9 @@ export const SequencesList: React.FC = () => {
             >
               <h3>{sequence.name}</h3>
               {sequence.description && (
-                <p className="text-muted">{sequence.description}</p>
+                <p className={`text-muted ${styles.cardDescription}`}>
+                  {sequence.description}
+                </p>
               )}
               {sequence.creator_username && (
                 <div className={styles.meta}>

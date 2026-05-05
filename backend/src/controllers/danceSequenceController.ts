@@ -95,6 +95,12 @@ export class DanceSequenceController extends BaseHttpController {
       const updated = await this.danceSequenceService.updateDanceSequence(id, { ...body, user_id: userId }, userRole);
       return this.ok(updated);
     } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return this.notFound();
+      }
+      if (error.message?.includes('not accessible')) {
+        return this.json({ message: error.message }, 403);
+      }
       return this.badRequest(error.message || `Could not update dance sequence with id: ${id}`);
     }
   }
@@ -113,10 +119,16 @@ export class DanceSequenceController extends BaseHttpController {
       const userId = this.httpContext.user.details.id;
       const userRole = this.httpContext.user.details.role;
 
-      const deleted = await this.danceSequenceService.deleteDanceSequence(id, userId, userRole);
+      await this.danceSequenceService.deleteDanceSequence(id, userId, userRole);
 
-      return this.ok(deleted);
+      return this.statusCode(204);
     } catch (error: any) {
+      if (error.message?.includes('not found')) {
+        return this.notFound();
+      }
+      if (error.message?.includes('not accessible')) {
+        return this.json({ message: error.message }, 403);
+      }
       return this.badRequest(error.message || `Could not delete dance sequence with id: ${id}`);
     }
   }

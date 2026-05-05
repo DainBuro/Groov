@@ -35,10 +35,10 @@ export const EventDetail: React.FC = () => {
         const eventData = await getEventById(parseInt(id));
         setEvent(eventData);
 
-        // Fetch all sequences and filter by event_id on frontend
+        // Filter sequences
         const allSequences = await getAllSequences();
         const eventSequences = allSequences.filter(
-          (seq) => seq.event_id === parseInt(id)
+          (seq) => seq.event_id === parseInt(id),
         );
         setSequences(eventSequences);
       } catch (err: any) {
@@ -56,7 +56,7 @@ export const EventDetail: React.FC = () => {
       setEditName(event.name);
       setEditLocation(event.location || "");
       setEditDate(
-        event.date ? new Date(event.date).toISOString().split("T")[0] : ""
+        event.date ? new Date(event.date).toISOString().split("T")[0] : "",
       );
     }
     setIsEditMode(!isEditMode);
@@ -89,7 +89,7 @@ export const EventDetail: React.FC = () => {
       navigate("/events");
     } catch (err: any) {
       alert(
-        "Failed to delete event. There may be sequences associated with it."
+        "Failed to delete event. There may be sequences associated with it.",
       );
     }
   };
@@ -228,7 +228,11 @@ export const EventDetail: React.FC = () => {
                   className={styles.sequenceCard}
                 >
                   <h3>{sequence.name}</h3>
-                  {sequence.description && <p>{sequence.description}</p>}
+                  {sequence.description && (
+                    <p className={styles.sequenceDescription}>
+                      {sequence.description}
+                    </p>
+                  )}
                 </Link>
               ))}
             </div>

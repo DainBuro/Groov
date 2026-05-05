@@ -21,7 +21,7 @@ export class MovesOfSequenceService {
 
   async deleteAllMovesOfSequence(sequenceId: number, userId: number, trx?: Knex.Transaction): Promise<number> {
     const sequence = await this.danceSequenceRepository.getDanceSequence(sequenceId);
-    if (_.isEmpty(sequenceId)) {
+    if (sequenceId == null) {
       throw new Error('Sequence ID is required');
     }
     if (!sequence) {
@@ -40,7 +40,7 @@ export class MovesOfSequenceService {
     trx?: Knex.Transaction
   ): Promise<MoveOfSequence[]> {
     const sequence = await this.danceSequenceRepository.getDanceSequence(sequenceId);
-    if (_.isEmpty(sequenceId)) {
+    if (sequenceId == null) {
       throw new Error('Sequence ID is required');
     }
     if (!sequence) {

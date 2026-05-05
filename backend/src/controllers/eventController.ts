@@ -109,8 +109,8 @@ export class EventController extends BaseHttpController {
         return this.notFound();
       }
 
-      const result = await this.eventService.deleteEvent(id);
-      return this.ok(result);
+      await this.eventService.deleteEvent(id);
+      return this.statusCode(204);
     } catch {
       return this.badRequest('Event id has to be a positive integer');
     }

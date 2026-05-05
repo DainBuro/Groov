@@ -8,6 +8,8 @@ import { Login } from './pages/Auth/Login';
 import { Signup } from './pages/Auth/Signup';
 import { DanceMovesList } from './pages/DanceMoves/DanceMovesList';
 import { DanceMoveDetail } from './pages/DanceMoves/DanceMoveDetail';
+import { PendingSubmissions } from './pages/DanceMoves/PendingSubmissions';
+import { MySubmissions } from './pages/DanceMoves/MySubmissions';
 import { SequencesList } from './pages/Sequences/SequencesList';
 import { SequenceDetail } from './pages/Sequences/SequenceDetail';
 import { EventsList } from './pages/Events/EventsList';
@@ -20,24 +22,40 @@ function App() {
       <AuthProvider>
         <Layout>
           <Routes>
-            {/* Public routes */}
+            {/* Pages anyone can visit */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
-            {/* Dance Moves routes */}
+            {/* Dance moves */}
             <Route path="/moves" element={<DanceMovesList />} />
+            <Route
+              path="/moves/mine"
+              element={
+                <ProtectedRoute>
+                  <MySubmissions />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/moves/pending"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <PendingSubmissions />
+                </ProtectedRoute>
+              }
+            />
             <Route path="/moves/:id" element={<DanceMoveDetail />} />
 
-            {/* Sequences routes - public viewing */}
+            {/* Sequences (anyone can browse these) */}
             <Route path="/sequences" element={<SequencesList />} />
             <Route path="/sequences/:id" element={<SequenceDetail />} />
 
-            {/* Events routes */}
+            {/* Events */}
             <Route path="/events" element={<EventsList />} />
             <Route path="/events/:id" element={<EventDetail />} />
 
-            {/* Admin routes */}
+            {/* Admin-only area */}
             <Route
               path="/admin"
               element={
@@ -50,7 +68,7 @@ function App() {
               }
             />
 
-            {/* Catch-all redirect */}
+            {/* Any unknown URL just goes back home */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
