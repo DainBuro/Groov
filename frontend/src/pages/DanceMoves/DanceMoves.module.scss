@@ -117,13 +117,20 @@
 .favoriteButtonInline {
   width: auto;
   height: auto;
+  padding: $spacing-1 $spacing-2;
   border: none;
   background: transparent;
   box-shadow: none;
-  font-size: $font-size-2xl;
+  font-size: $font-size-3xl;
+  line-height: 1;
 
   @media (hover: hover) {
     opacity: 1;
+  }
+
+  &:hover {
+    background: transparent;
+    border-color: transparent;
   }
 }
 

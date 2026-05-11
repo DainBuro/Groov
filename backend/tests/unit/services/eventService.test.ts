@@ -54,4 +54,36 @@ describe('EventService', () => {
   it('requires an id on getEventById', async () => {
     await expect(service.getEventById(null as any)).rejects.toThrow('Event ID is required');
   });
+
+  describe('updateEvent', () => {
+    it('throws when id is null', async () => {
+      await expect(service.updateEvent(null as any, { name: 'x' })).rejects.toThrow('Event ID is required');
+      expect(repo.updateEvent).not.toHaveBeenCalled();
+    });
+
+    it('forwards the update to the repository', async () => {
+      repo.updateEvent!.mockResolvedValue([{ id: 5, name: 'Renamed' } as any]);
+
+      const result = await service.updateEvent(5, { name: 'Renamed' });
+
+      expect(repo.updateEvent).toHaveBeenCalledWith(5, { name: 'Renamed' });
+      expect(result[0].name).toBe('Renamed');
+    });
+  });
+
+  describe('deleteEvent', () => {
+    it('throws when id is null', async () => {
+      await expect(service.deleteEvent(null as any)).rejects.toThrow('Event ID is required');
+      expect(repo.deleteEvent).not.toHaveBeenCalled();
+    });
+
+    it('forwards the delete to the repository', async () => {
+      repo.deleteEvent!.mockResolvedValue(1);
+
+      const result = await service.deleteEvent(5);
+
+      expect(repo.deleteEvent).toHaveBeenCalledWith(5);
+      expect(result).toBe(1);
+    });
+  });
 });

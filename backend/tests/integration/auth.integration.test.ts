@@ -121,4 +121,32 @@ describe('Auth routes (integration)', () => {
       expect(repo._refreshTokens.length).toBe(tokensBefore - 1);
     });
   });
+
+  describe('POST /auth/refresh', () => {
+    it('400 when no refresh token cookie is sent', async () => {
+      const res = await request(app).post('/auth/refresh');
+      expect(res.status).toBe(400);
+    });
+
+    it('401 when the refresh token is unknown', async () => {
+      const res = await request(app)
+        .post('/auth/refresh')
+        .set('Cookie', ['refreshToken=not-a-real-token']);
+      expect(res.status).toBe(401);
+    });
+
+    it('returns a fresh access token and sets the cookie', async () => {
+      const login = await request(app).post('/auth/login').send({ username: 'dainius', password: 'pw12345' });
+      const cookies = login.headers['set-cookie'] as unknown as string[];
+      const refreshCookie = cookies.find((c) => c.startsWith('refreshToken='));
+      expect(refreshCookie).toBeDefined();
+
+      const res = await request(app).post('/auth/refresh').set('Cookie', [refreshCookie!]);
+
+      expect(res.status).toBe(200);
+      expect(res.body.newAccessToken).toEqual(expect.any(String));
+      const setCookies = res.headers['set-cookie'] as unknown as string[];
+      expect(setCookies.some((c) => c.startsWith('accessToken='))).toBe(true);
+    });
+  });
 });

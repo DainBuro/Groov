@@ -11,6 +11,7 @@ import { EventRepository } from '../../../src/repositories/eventRepository';
 import { DanceMoveRepository } from '../../../src/repositories/danceMoveRepository';
 import { DanceSequenceRepository } from '../../../src/repositories/danceSequenceRepository';
 import { MovesOfSequenceRepository } from '../../../src/repositories/movesOfSequenceRepository';
+import { FavoriteMoveRepository } from '../../../src/repositories/favoriteMoveRepository';
 
 export interface TestRepositories {
   authRepository: Partial<AuthRepository>;
@@ -18,6 +19,7 @@ export interface TestRepositories {
   danceMoveRepository: Partial<DanceMoveRepository>;
   danceSequenceRepository: Partial<DanceSequenceRepository>;
   movesOfSequenceRepository: Partial<MovesOfSequenceRepository>;
+  favoriteMoveRepository: Partial<FavoriteMoveRepository>;
 }
 
 // Call this before buildTestApp(). Once a service is built it keeps whatever
@@ -45,6 +47,11 @@ export const rebindRepositories = (repos: Partial<TestRepositories>) => {
     iocContainer
       .rebind<MovesOfSequenceRepository>(TYPES.movesOfSequenceRepository)
       .toConstantValue(repos.movesOfSequenceRepository as MovesOfSequenceRepository);
+  }
+  if (repos.favoriteMoveRepository) {
+    iocContainer
+      .rebind<FavoriteMoveRepository>(TYPES.favoriteMoveRepository)
+      .toConstantValue(repos.favoriteMoveRepository as FavoriteMoveRepository);
   }
 };
 

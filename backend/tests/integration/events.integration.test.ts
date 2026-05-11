@@ -112,5 +112,136 @@ describe('Event routes (integration)', () => {
       expect(res.text).toBe('');
       expect(eventRepo.deleteEvent).toHaveBeenCalledWith('1');
     });
+
+    it('400 for non-positive id', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      const res = await request(app)
+        .delete('/events/-1')
+        .set('Cookie', [`accessToken=${token}`]);
+      expect(res.status).toBe(400);
+    });
+
+    it('401 without authentication', async () => {
+      const res = await request(app).delete('/events/1');
+      expect(res.status).toBe(401);
+    });
+
+    it('403 for non-admin users', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.User });
+      const res = await request(app)
+        .delete('/events/1')
+        .set('Cookie', [`accessToken=${token}`]);
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe('GET /events/:id', () => {
+    it('400 for non-positive id', async () => {
+      const res = await request(app).get('/events/-1');
+      expect(res.status).toBe(400);
+    });
+
+    it('404 when not found', async () => {
+      eventRepo.getEventById.mockResolvedValue(null);
+      const res = await request(app).get('/events/9');
+      expect(res.status).toBe(404);
+    });
+
+    it('200 with the event', async () => {
+      eventRepo.getEventById.mockResolvedValue({ id: 3, name: 'Camp' });
+      const res = await request(app).get('/events/3');
+      expect(res.status).toBe(200);
+      expect(JSON.parse(res.text)).toEqual({ id: 3, name: 'Camp' });
+    });
+  });
+
+  describe('POST /events validation', () => {
+    it('400 when the body contains an id', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      const res = await request(app)
+        .post('/events')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ id: 5, name: 'x' });
+      expect(res.status).toBe(400);
+    });
+
+    it('400 when the service rejects the payload', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      // Missing `name` triggers the service-level error → controller maps to 400.
+      const res = await request(app)
+        .post('/events')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ description: 'no name' });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('PUT /events/:id', () => {
+    it('401 without authentication', async () => {
+      const res = await request(app).put('/events/1').send({ name: 'x' });
+      expect(res.status).toBe(401);
+    });
+
+    it('403 for non-admin users', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.User });
+      const res = await request(app)
+        .put('/events/1')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ name: 'x' });
+      expect(res.status).toBe(403);
+    });
+
+    it('400 for non-positive id', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      const res = await request(app)
+        .put('/events/-1')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ name: 'x' });
+      expect(res.status).toBe(400);
+    });
+
+    it('400 when the body contains an id', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      const res = await request(app)
+        .put('/events/1')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ id: 9, name: 'x' });
+      expect(res.status).toBe(400);
+    });
+
+    it('400 when the body is empty', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      const res = await request(app)
+        .put('/events/1')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({});
+      expect(res.status).toBe(400);
+    });
+
+    it('404 when the event does not exist', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      eventRepo.getEventById.mockResolvedValue(null);
+
+      const res = await request(app)
+        .put('/events/9')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ name: 'x' });
+
+      expect(res.status).toBe(404);
+    });
+
+    it('200 with the updated event', async () => {
+      const token = signAccessToken({ id: 1, role: RoleType.Admin });
+      eventRepo.getEventById.mockResolvedValue({ id: 1, name: 'Old' });
+      eventRepo.updateEvent.mockResolvedValue([{ id: 1, name: 'New' }]);
+
+      const res = await request(app)
+        .put('/events/1')
+        .set('Cookie', [`accessToken=${token}`])
+        .send({ name: 'New' });
+
+      expect(res.status).toBe(200);
+      expect(JSON.parse(res.text)).toEqual({ id: 1, name: 'New' });
+    });
   });
 });

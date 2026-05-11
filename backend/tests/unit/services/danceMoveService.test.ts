@@ -254,5 +254,111 @@ describe('DanceMoveService', () => {
         includeOwnedBy: 5
       });
     });
+
+    it('default view for admins does not pin to includeOwnedBy', async () => {
+      repo.getAllDanceMoves!.mockResolvedValue([] as any);
+      await service.getAllDanceMoves({ requesterId: 2, requesterRole: RoleType.Admin });
+      expect(repo.getAllDanceMoves).toHaveBeenCalledWith({
+        search: undefined,
+        statuses: [SubmissionStatusEnum.Approved],
+        includeOwnedBy: undefined
+      });
+    });
+
+    it('returns empty when non-admin filters by status without a requester id', async () => {
+      const result = await service.getAllDanceMoves({
+        status: SubmissionStatusEnum.Pending,
+        requesterRole: RoleType.User
+      });
+      expect(result).toEqual([]);
+      expect(repo.getAllDanceMoves).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('approveDanceMove', () => {
+    it('throws when the move does not exist', async () => {
+      repo.getDanceMove!.mockResolvedValue(null as any);
+      await expect(service.approveDanceMove(1)).rejects.toThrow('not found');
+    });
+
+    it('updates the submission status to approved', async () => {
+      repo.getDanceMove!.mockResolvedValue({ id: 1 } as any);
+      repo.updateSubmissionStatus!.mockResolvedValue({ id: 1 } as any);
+
+      await service.approveDanceMove(1);
+
+      expect(repo.updateSubmissionStatus).toHaveBeenCalledWith(1, SubmissionStatusEnum.Approved, null);
+    });
+  });
+
+  describe('rejectDanceMove', () => {
+    it('throws when the move does not exist', async () => {
+      repo.getDanceMove!.mockResolvedValue(null as any);
+      await expect(service.rejectDanceMove(1, 'nope')).rejects.toThrow('not found');
+    });
+
+    it('forwards the rejection reason', async () => {
+      repo.getDanceMove!.mockResolvedValue({ id: 1 } as any);
+      repo.updateSubmissionStatus!.mockResolvedValue({ id: 1 } as any);
+
+      await service.rejectDanceMove(1, 'too similar');
+
+      expect(repo.updateSubmissionStatus).toHaveBeenCalledWith(1, SubmissionStatusEnum.Rejected, 'too similar');
+    });
+  });
+
+  describe('uploadPoseData', () => {
+    it('throws when the move does not exist', async () => {
+      repo.getDanceMove!.mockResolvedValue(null as any);
+      await expect(service.uploadPoseData(1, '{}', 'a.json')).rejects.toThrow('not found');
+    });
+
+    it('writes pose data and file name when the move exists', async () => {
+      repo.getDanceMove!.mockResolvedValue({ id: 1 } as any);
+      repo.updatePoseData!.mockResolvedValue({ id: 1 } as any);
+
+      await service.uploadPoseData(1, '{"frames":[]}', 'clip.mp4');
+
+      expect(repo.updatePoseData).toHaveBeenCalledWith(1, '{"frames":[]}', 'clip.mp4');
+    });
+  });
+
+  describe('deletePoseData', () => {
+    it('throws when the move does not exist', async () => {
+      repo.getDanceMove!.mockResolvedValue(null as any);
+      await expect(service.deletePoseData(1)).rejects.toThrow('not found');
+    });
+
+    it('clears pose data via the repository', async () => {
+      repo.getDanceMove!.mockResolvedValue({ id: 1 } as any);
+      repo.updatePoseData!.mockResolvedValue({ id: 1 } as any);
+
+      await service.deletePoseData(1);
+
+      expect(repo.updatePoseData).toHaveBeenCalledWith(1, null, null);
+    });
+  });
+
+  describe('getChildMoves / getParentMove', () => {
+    it('delegates to the repository with the approved-only flag for children', async () => {
+      repo.getChildMoves!.mockResolvedValue([{ id: 2 }] as any);
+      await service.getChildMoves(1);
+      expect(repo.getChildMoves).toHaveBeenCalledWith(1, true);
+    });
+
+    it('delegates to the repository for parent lookup', async () => {
+      repo.getParentMove!.mockResolvedValue({ id: 9 } as any);
+      const result = await service.getParentMove(1);
+      expect(repo.getParentMove).toHaveBeenCalledWith(1);
+      expect(result).toEqual({ id: 9 });
+    });
+  });
+
+  describe('getDanceMovesByDifficulty', () => {
+    it('forwards the difficulty filter with the approved-only flag', async () => {
+      repo.getDanceMovesByDifficulty!.mockResolvedValue([] as any);
+      await service.getDanceMovesByDifficulty(DifficultyEnum.Hard);
+      expect(repo.getDanceMovesByDifficulty).toHaveBeenCalledWith(DifficultyEnum.Hard, true);
+    });
   });
 });
