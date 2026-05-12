@@ -9,6 +9,7 @@ import {
 } from "../../api/sequenceApi";
 import { getAllEvents, getEventById } from "../../api/eventApi";
 import { getAllDanceMoves } from "../../api/danceMoveApi";
+import { getFavoriteMoveIds } from "../../api/favoriteApi";
 import {
   DanceSequence,
   Event,
@@ -71,6 +72,10 @@ export const SequenceDetail: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedMoveIds, setSelectedMoveIds] = useState<number[]>([]);
   const [moveSearchTerm, setMoveSearchTerm] = useState("");
+  const [showAllMoves, setShowAllMoves] = useState(false);
+  const [hideVariations, setHideVariations] = useState(true);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
   const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
@@ -114,6 +119,17 @@ export const SequenceDetail: React.FC = () => {
 
     fetchSequenceData();
   }, [id]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setFavoriteIds(new Set());
+      setOnlyFavorites(false);
+      return;
+    }
+    getFavoriteMoveIds()
+      .then((ids) => setFavoriteIds(new Set(ids)))
+      .catch(() => setFavoriteIds(new Set()));
+  }, [isAuthenticated]);
 
   const handleDelete = async () => {
     if (!sequence) {
@@ -246,9 +262,25 @@ export const SequenceDetail: React.FC = () => {
     setMoveSearchTerm("");
   };
 
-  const filteredMoves = allMoves.filter((move) =>
-    move.name.toLowerCase().includes(moveSearchTerm.toLowerCase()),
-  );
+  const lastSelectedMove =
+    selectedMoveIds.length > 0
+      ? allMoves.find(
+          (m) => m.id === selectedMoveIds[selectedMoveIds.length - 1],
+        )
+      : null;
+
+  const filteredMoves = allMoves
+    .filter((move) =>
+      move.name.toLowerCase().includes(moveSearchTerm.toLowerCase()),
+    )
+    .filter(
+      (move) =>
+        showAllMoves ||
+        !lastSelectedMove ||
+        positionsMatch(lastSelectedMove.end_position, move.start_position),
+    )
+    .filter((move) => !hideVariations || move.parent_move_id == null)
+    .filter((move) => !onlyFavorites || favoriteIds.has(move.id));
 
   if (isLoading) return <div className="container">Loading...</div>;
   if (error) return <div className="container">{error}</div>;
@@ -569,6 +601,32 @@ export const SequenceDetail: React.FC = () => {
                 onChange={(e) => setMoveSearchTerm(e.target.value)}
                 className={styles.searchInput}
               />
+              <label className={styles.filterCheckbox}>
+                <input
+                  type="checkbox"
+                  checked={showAllMoves}
+                  onChange={(e) => setShowAllMoves(e.target.checked)}
+                />
+                Show all moves
+              </label>
+              <label className={styles.filterCheckbox}>
+                <input
+                  type="checkbox"
+                  checked={hideVariations}
+                  onChange={(e) => setHideVariations(e.target.checked)}
+                />
+                Hide variations
+              </label>
+              {isAuthenticated && (
+                <label className={styles.filterCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={onlyFavorites}
+                    onChange={(e) => setOnlyFavorites(e.target.checked)}
+                  />
+                  Only favorites
+                </label>
+              )}
             </div>
             <div className={styles.movesGrid}>
               {filteredMoves.map((move) => {
