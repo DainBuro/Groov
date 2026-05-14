@@ -20,7 +20,6 @@ import _ from 'lodash';
 import { DanceMoveService } from '../services/danceMoveService';
 import { iocContainer } from '../ioc/inversify.config';
 
-// Big videos go to disk, not memory.
 const upload = multer({
   storage: multer.diskStorage({
     destination: os.tmpdir(),
@@ -230,7 +229,6 @@ export class DanceMoveController extends BaseHttpController {
         return this.badRequest('numPoses must be between 1 and 4.');
       }
 
-      // Kick off the extraction in the background and return the move right away.
       const updated = await this.danceMoveService.extractPoseFromVideo(id, file.path, file.originalname, numPoses);
       return this.ok(updated);
     } catch (err: any) {

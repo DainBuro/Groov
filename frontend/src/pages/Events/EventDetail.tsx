@@ -22,7 +22,6 @@ export const EventDetail: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
 
-  // Edit form state
   const [editName, setEditName] = useState("");
   const [editLocation, setEditLocation] = useState("");
   const [editDate, setEditDate] = useState("");
@@ -35,7 +34,6 @@ export const EventDetail: React.FC = () => {
         const eventData = await getEventById(parseInt(id));
         setEvent(eventData);
 
-        // Filter sequences
         const allSequences = await getAllSequences();
         const eventSequences = allSequences.filter(
           (seq) => seq.event_id === parseInt(id),

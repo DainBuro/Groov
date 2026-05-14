@@ -1,8 +1,6 @@
 import 'reflect-metadata';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-// Single source of truth lives at the project root. dotenv silently no-ops if
-// the file isn't there (e.g. inside Docker, where env vars come from compose).
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 import './ioc/controllers';

@@ -24,7 +24,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Restore the session if the cookie is still valid.
     const checkAuth = async () => {
       try {
         const currentUser = await getCurrentUser();
@@ -52,7 +51,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (credentials: SignupRequest) => {
     try {
       await signupApi(credentials);
-      // Log them in right after signup.
       await login({
         username: credentials.username,
         password: credentials.password,

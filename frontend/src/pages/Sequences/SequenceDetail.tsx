@@ -29,7 +29,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ConfirmModal from "../../components/common/ConfirmModal";
 
-// Two positions are compatible if they match, or if either side is "any".
 const positionsMatch = (a: KeyPositionEnum, b: KeyPositionEnum): boolean =>
   a === b || a === KeyPositionEnum.Any || b === KeyPositionEnum.Any;
 
@@ -80,7 +79,6 @@ export const SequenceDetail: React.FC = () => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
 
-  // Edit form state for sequence-level fields.
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editEventId, setEditEventId] = useState<number | null>(null);
@@ -156,7 +154,6 @@ export const SequenceDetail: React.FC = () => {
   };
 
   const handleMoveToggle = (moveId: number) => {
-    // Duplicates are allowed on purpose - a sequence can repeat a move.
     setSelectedMoveIds((prev) => [...prev, moveId]);
   };
 

@@ -81,7 +81,6 @@ export const DanceMoveDetail: React.FC = () => {
   const [openDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Edit form state
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editDifficulty, setEditDifficulty] = useState<DifficultyEnum>(
@@ -125,7 +124,6 @@ export const DanceMoveDetail: React.FC = () => {
         const allMovesData = await getAllDanceMoves();
         setAllMoves(allMovesData);
 
-        // Find which sequences use this move.
         const allSequences = await getAllSequences();
         const sequencesWithMoves = await Promise.all(
           allSequences.map(async (seq) => {
@@ -188,7 +186,6 @@ export const DanceMoveDetail: React.FC = () => {
     }
   };
 
-  // Keep checking for pose updates until it's done or failed.
   useEffect(() => {
     if (
       !move ||
@@ -208,7 +205,6 @@ export const DanceMoveDetail: React.FC = () => {
           clearInterval(interval);
         }
       } catch {
-        // A failed poll is fine - just try again next tick.
       }
     }, 5000);
 
@@ -217,7 +213,6 @@ export const DanceMoveDetail: React.FC = () => {
 
   const handleEditToggle = () => {
     if (!isEditMode && move) {
-      // Prefill the form with the current values when opening the editor.
       setEditName(move.name);
       setEditDescription(move.description || "");
       setEditDifficulty(move.difficulty);

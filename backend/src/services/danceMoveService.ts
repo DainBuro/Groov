@@ -25,7 +25,6 @@ export interface ListMovesOptions {
 
 @injectable()
 export class DanceMoveService {
-  // One pose job at a time, otherwise we run out of memory.
   private poseQueue: PoseJob[] = [];
   private poseRunning = false;
 
@@ -56,7 +55,6 @@ export class DanceMoveService {
 
     if (status) {
       if (!isAdmin) {
-        // Non-admins can only list their own non-approved submissions.
         if (!requesterId) return [];
         return this.danceMoveRepository.getAllDanceMoves({
           search,
@@ -67,7 +65,6 @@ export class DanceMoveService {
       return this.danceMoveRepository.getAllDanceMoves({ search, statuses: [status] });
     }
 
-    // Default browse view: approved only, plus the requester's own submissions if signed in.
     return this.danceMoveRepository.getAllDanceMoves({
       search,
       statuses: [SubmissionStatusEnum.Approved],
@@ -118,18 +115,14 @@ export class DanceMoveService {
       throw new Error('Not allowed to update this dance move.');
     }
 
-    // A non-admin can only edit their own move while it's still pending or was rejected.
-    // Once approved, only admins may edit it.
     if (!isAdmin && existing.submission_status === SubmissionStatusEnum.Approved) {
       throw new Error('Not allowed to update an approved dance move.');
     }
 
-    // Strip fields that only admins may change through this endpoint.
     const { submission_status, rejection_reason, created_by, ...safeData } = data;
 
     const updates: Partial<DanceMove> = { ...safeData };
 
-    // If a user edits their rejected submission, flip it back to pending so admin re-reviews.
     if (!isAdmin && existing.submission_status === SubmissionStatusEnum.Rejected) {
       updates.submission_status = SubmissionStatusEnum.Pending;
       updates.rejection_reason = null;
@@ -181,7 +174,6 @@ export class DanceMoveService {
     return this.danceMoveRepository.updatePoseData(id, poseData, fileName);
   }
 
-  // Queues the video and returns right away. UI polls status to see progress.
   async extractPoseFromVideo(
     id: number,
     videoPath: string,
@@ -198,7 +190,6 @@ export class DanceMoveService {
     const initialStatus = this.poseRunning ? PoseStatusEnum.Queued : PoseStatusEnum.Processing;
     await this.danceMoveRepository.updatePoseStatus(id, initialStatus, null);
 
-    // Does nothing if a job is already running.
     this.processPoseQueue();
 
     return this.danceMoveRepository.getDanceMove(id);
@@ -245,7 +236,6 @@ export class DanceMoveService {
         console.error(`[Pose extraction ${job.moveId}] Handler error:`, err);
         await this.danceMoveRepository.updatePoseStatus(job.moveId, PoseStatusEnum.Failed, err.message);
       } finally {
-        // Clean up temp files.
         if (fs.existsSync(job.videoPath)) fs.unlinkSync(job.videoPath);
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
 

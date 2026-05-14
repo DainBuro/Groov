@@ -38,7 +38,6 @@ export class DanceSequenceService {
     if (!existing) {
       throw new Error(`Dance sequence with ID ${id} not found.`);
     }
-    // Only the person who made the sequence (or an admin) is allowed to edit it.
     if (existing.user_id !== data.user_id && userRole !== RoleType.Admin) {
       throw new Error(`Dance sequence with ID ${id} is not accessible.`);
     }
@@ -50,7 +49,6 @@ export class DanceSequenceService {
     if (!existing) {
       throw new Error(`Dance sequence with ID ${id} not found.`);
     }
-    // Same rule as update: only the creator or an admin can delete it.
     if (existing.user_id !== user_id && userRole !== RoleType.Admin) {
       throw new Error(`Dance sequence with ID ${id} is not accessible.`);
     }

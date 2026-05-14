@@ -14,10 +14,8 @@ const SALT_ROUNDS = 10;
 
 type CustomResponse = { body: any; statusCode: number };
 
-// Refresh token lives for 6 hours before the user has to log in again.
 export const REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 6;
 
-// Access token is short lived (30 min) and gets refreshed behind the scenes.
 export const ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 30;
 
 export const sendResponse = (expressResponse: Response, customResponse: CustomResponse) => {
@@ -182,7 +180,6 @@ export class AuthService {
         return null;
       }
 
-      // Strip the password before sending the user back to the client.
       const { password, ...userWithoutPassword } = user;
       return userWithoutPassword;
     } catch (err) {

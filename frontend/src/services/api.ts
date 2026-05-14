@@ -4,7 +4,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3003';
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // send auth cookies with each request
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -37,7 +37,6 @@ api.interceptors.request.use(
   }
 );
 
-// On 401, try refreshing the token once and replay the request.
 api.interceptors.response.use(
   (response) => {
     return response;
@@ -45,12 +44,10 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest: any = error.config;
 
-    // Don't refresh for /auth/ calls - avoids infinite loops on bad logins.
     const isAuthEndpoint = originalRequest.url?.includes('/auth/');
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
-        // Already refreshing - wait for it to finish before retrying.
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })

@@ -97,7 +97,6 @@ export const DanceMovesList: React.FC = () => {
         await addFavoriteMove(moveId);
       }
     } catch {
-      // Roll back optimistic update on failure.
       setFavoriteIds(favoriteIds);
     }
   };
