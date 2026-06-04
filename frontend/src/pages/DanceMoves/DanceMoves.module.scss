@@ -445,6 +445,33 @@
   }
 }
 
+/* Accent for the signed-in user's own moves */
+.cardOwn {
+  position: relative;
+  border-color: rgba($primary, 0.35);
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3px;
+    background: $primary;
+  }
+}
+
+.ownTag {
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background-color: rgba($primary, 0.12);
+  color: $primary-dark;
+}
+
 .cardDescription {
   margin: 0 0 $spacing-4 0;
   overflow: hidden;

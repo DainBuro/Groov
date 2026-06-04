@@ -380,11 +380,16 @@ export const DanceMovesList: React.FC = () => {
               <Link
                 to={`/moves/${move.id}`}
                 key={move.id}
-                className={styles.card}
+                className={`${styles.card} ${
+                  isOwnSubmission ? styles.cardOwn : ""
+                }`}
               >
                 <div className={styles.cardHeader}>
                   <h3>{move.name}</h3>
                   <div className={styles.cardHeaderActions}>
+                    {isOwnSubmission && (
+                      <span className={styles.ownTag}>Yours</span>
+                    )}
                     {isOwnSubmission && renderStatusBadge(move)}
                     {isAuthenticated && (
                       <button

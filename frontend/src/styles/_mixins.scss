@@ -108,8 +108,9 @@
 // Card style
 @mixin card {
   background: $white;
-  border-radius: $radius-lg;
-  box-shadow: $shadow-base;
+  border: 1px solid $gray-200;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-sm;
   padding: $spacing-6;
 }
 
@@ -153,11 +154,14 @@
 
 // Hover lift effect
 @mixin hover-lift {
-  transition: transform $transition-base $transition-ease, box-shadow $transition-base $transition-ease;
+  transition: transform $transition-base $transition-ease,
+    box-shadow $transition-base $transition-ease,
+    border-color $transition-base $transition-ease;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: $shadow-lg;
+    border-color: $primary-lightest;
   }
 }
 
