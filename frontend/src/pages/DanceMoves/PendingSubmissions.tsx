@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   approveDanceMove,
+  getAllDanceMoves,
   getPendingDanceMoves,
   rejectDanceMove,
 } from "../../api/danceMoveApi";
@@ -12,13 +13,23 @@ import styles from "./DanceMoves.module.scss";
 
 export const PendingSubmissions: React.FC = () => {
   const [moves, setMoves] = useState<DanceMove[]>([]);
+  const [existingNames, setExistingNames] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const loadMoves = async () => {
     try {
-      const data = await getPendingDanceMoves();
-      setMoves(data);
+      // Pending submissions plus the already-approved moves, so we can flag
+      // submissions whose name collides (case-insensitively) with one that
+      // already exists.
+      const [pending, approved] = await Promise.all([
+        getPendingDanceMoves(),
+        getAllDanceMoves(),
+      ]);
+      setMoves(pending);
+      setExistingNames(
+        new Set(approved.map((m) => m.name.trim().toLowerCase())),
+      );
       setError("");
     } catch {
       setError("Failed to load pending submissions");
@@ -83,45 +94,76 @@ export const PendingSubmissions: React.FC = () => {
         <p className="text-muted">Nothing to review right now.</p>
       ) : (
         <div className={styles.grid}>
-          {moves.map((move) => (
-            <Link
-              to={`/moves/${move.id}`}
-              key={move.id}
-              className={styles.card}
-            >
-              <div className={styles.cardHeader}>
-                <h3>{move.name}</h3>
-                <span className={`${styles.statusBadge} ${styles.statusPending}`}>
-                  Pending
-                </span>
-              </div>
-              {move.description && (
-                <p className={`text-muted ${styles.cardDescription}`}>
-                  {move.description}
-                </p>
-              )}
-              <div className={styles.meta}>
-                <span className={styles.badge}>{move.difficulty}</span>
-                <span>
-                  {formatPosition(move.start_position)} →{" "}
-                  {formatPosition(move.end_position)}
-                </span>
-              </div>
-              {move.creator_username && (
-                <p className="text-muted" style={{ marginTop: 8 }}>
-                  Submitted by <strong>{move.creator_username}</strong>
-                </p>
-              )}
-              <div className={styles.moderationActions}>
-                <Button variant="primary" onClick={(e) => handleApprove(e, move.id)}>
-                  Approve
-                </Button>
-                <Button variant="danger" onClick={(e) => handleReject(e, move.id)}>
-                  Reject
-                </Button>
-              </div>
-            </Link>
-          ))}
+          {moves.map((move) => {
+            const isDuplicate = existingNames.has(
+              move.name.trim().toLowerCase(),
+            );
+            return (
+              <Link
+                to={`/moves/${move.id}`}
+                key={move.id}
+                className={`${styles.pendingCard} ${
+                  isDuplicate ? styles.pendingCardFlagged : ""
+                }`}
+              >
+                <div className={styles.pendingBody}>
+                  <div className={styles.pendingHeader}>
+                    <h3>{move.name}</h3>
+                    <span
+                      className={`${styles.statusBadge} ${styles.statusPending}`}
+                    >
+                      Pending
+                    </span>
+                  </div>
+
+                  {isDuplicate && (
+                    <span className={styles.pendingDupe}>
+                      A move named “{move.name}” already exists
+                    </span>
+                  )}
+
+                  {move.description && (
+                    <p className={styles.pendingDesc}>{move.description}</p>
+                  )}
+
+                  <div className={styles.pendingMeta}>
+                    <span className={styles.badge}>{move.difficulty}</span>
+                    <span className={styles.pendingPositions}>
+                      {formatPosition(move.start_position)} →{" "}
+                      {formatPosition(move.end_position)}
+                    </span>
+                  </div>
+
+                  {move.creator_username && (
+                    <div className={styles.pendingSubmitter}>
+                      <span>
+                        Submitted by <strong>{move.creator_username}</strong>
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.pendingActions}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    onClick={(e) => handleApprove(e, move.id)}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    fullWidth
+                    onClick={(e) => handleReject(e, move.id)}
+                  >
+                    Reject
+                  </Button>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

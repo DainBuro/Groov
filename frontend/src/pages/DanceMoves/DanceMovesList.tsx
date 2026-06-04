@@ -40,6 +40,9 @@ export const DanceMovesList: React.FC = () => {
   );
   const [newMoveParentId, setNewMoveParentId] = useState<string>("");
   const [newMoveYoutubeUrl, setNewMoveYoutubeUrl] = useState("");
+  const [duplicateMoveName, setDuplicateMoveName] = useState<string | null>(
+    null,
+  );
 
   const loadMoves = async () => {
     try {
@@ -67,6 +70,34 @@ export const DanceMovesList: React.FC = () => {
       loadMoves();
     }
   }, [searchTerm]);
+
+  // When a move with such name already exists
+  useEffect(() => {
+    const trimmed = newMoveName.trim();
+    if (!showCreateForm || !trimmed) {
+      setDuplicateMoveName(null);
+      return;
+    }
+
+    let cancelled = false;
+    const handle = setTimeout(async () => {
+      try {
+        const candidates = await getAllDanceMoves(trimmed);
+        if (cancelled) return;
+        const match = candidates.find(
+          (m) => m.name.trim().toLowerCase() === trimmed.toLowerCase(),
+        );
+        setDuplicateMoveName(match ? match.name : null);
+      } catch {
+        if (!cancelled) setDuplicateMoveName(null);
+      }
+    }, 700);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [newMoveName, showCreateForm]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -230,6 +261,11 @@ export const DanceMovesList: React.FC = () => {
                 required
                 placeholder="Enter move name"
               />
+              {duplicateMoveName && (
+                <p className={styles.duplicateWarning}>
+                  A move named “{duplicateMoveName}” already exists.
+                </p>
+              )}
             </div>
             <div className={styles.formGroup}>
               <label htmlFor="description">Description</label>

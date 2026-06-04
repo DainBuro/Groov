@@ -278,6 +278,17 @@
   }
 }
 
+.duplicateWarning {
+  margin: $spacing-2 0 0 0;
+  padding: $spacing-2 $spacing-3;
+  background: rgba($warning, 0.12);
+  border-left: 3px solid $warning;
+  border-radius: $radius-sm;
+  color: $gray-700;
+  font-size: $font-size-sm;
+  line-height: 1.4;
+}
+
 .formActions {
   display: flex;
   gap: $spacing-3;
@@ -296,6 +307,126 @@
   @include respond-to("lg") {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+/* Pending submission card */
+.pendingCard {
+  display: flex;
+  flex-direction: column;
+  background: $white;
+  border: 1px solid $gray-200;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-sm;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition:
+    transform $transition-base $transition-ease,
+    box-shadow $transition-base $transition-ease,
+    border-color $transition-base $transition-ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+    border-color: $primary-lightest;
+  }
+}
+
+.pendingCardFlagged {
+  border-color: rgba($warning, 0.5);
+}
+
+.pendingBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  padding: $spacing-5 $spacing-6;
+}
+
+.pendingHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-3;
+
+  h3 {
+    margin: 0;
+    color: $gray-900;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-tight;
+    word-break: break-word;
+  }
+}
+
+.pendingDupe {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  align-self: flex-start;
+  padding: $spacing-1 $spacing-3;
+  background: rgba($warning, 0.12);
+  border-radius: $radius-full;
+  color: #b45309;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &::before {
+    content: "⚠";
+    font-size: $font-size-sm;
+    line-height: 1;
+  }
+}
+
+.pendingDesc {
+  margin: 0;
+  color: $gray-600;
+  font-size: $font-size-sm;
+  line-height: $line-height-normal;
+  @include line-clamp(2);
+}
+
+.pendingMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+}
+
+.pendingPositions {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-3;
+  background: $gray-100;
+  border-radius: $radius-full;
+  color: $gray-600;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-transform: capitalize;
+}
+
+.pendingSubmitter {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  margin-top: $spacing-1;
+  font-size: $font-size-sm;
+  color: $gray-500;
+
+  strong {
+    color: $gray-700;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.pendingActions {
+  display: flex;
+  gap: $spacing-3;
+  padding: $spacing-4 $spacing-6;
+  border-top: 1px solid $gray-100;
+  background: $gray-50;
 }
 
 .card {
