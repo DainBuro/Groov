@@ -23,7 +23,9 @@ export const PoseUpload: React.FC<PoseUploadProps> = ({
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isProcessing = poseStatus === PoseStatusEnum.Processing || poseStatus === PoseStatusEnum.Queued;
+  const isProcessing =
+    poseStatus === PoseStatusEnum.Processing ||
+    poseStatus === PoseStatusEnum.Queued;
 
   const handleUpload = async () => {
     const file = fileInputRef.current?.files?.[0];
@@ -72,8 +74,8 @@ export const PoseUpload: React.FC<PoseUploadProps> = ({
 
       {poseStatus === PoseStatusEnum.Processing && (
         <div className={styles.status}>
-          Processing video in the background. You can leave this page — the
-          extraction will continue and appear on the move detail when ready.
+          Processing video in the background. You can leave this page, the
+          extraction will continue.
         </div>
       )}
 
@@ -118,7 +120,11 @@ export const PoseUpload: React.FC<PoseUploadProps> = ({
           onClick={handleUpload}
           disabled={isSubmitting || isProcessing}
         >
-          {isSubmitting ? "Starting..." : isProcessing ? "Processing..." : "Extract Motion"}
+          {isSubmitting
+            ? "Starting..."
+            : isProcessing
+              ? "Processing..."
+              : "Extract Motion"}
         </button>
       </div>
 
